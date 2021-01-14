@@ -1,2 +1,2 @@
-# Computer-Structures
-50.002 Computer Structures
+# Computation-Structures
+50.002 Computation Structures
