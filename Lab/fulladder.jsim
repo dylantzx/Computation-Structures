@@ -1,0 +1,30 @@
+.include "./50002/nominal.jsim"
+.include "./50002/8clocks.jsim"
+.include "./library.jsim"
+
+/*
+* 3 - input Full adder: Inputs are a b ci Outputs are s co
+.subckt FA a b ci s co
+Xxor1 a b p1 xor2
+Xxor2 p1 ci s xor2
+Xxor3 p4 p5 co xor2
+Xnand1 p1 ci p2 nand2
+Xnand2 a b p3 nand2
+Xinv1 p2 p4 inv
+Xinv2 p3 p5 inv
+.ends
+*/
+
+* 3 - input Full adder: Inputs are a b ci Outputs are s co
+.subckt FA a b ci s co
+Xsum a b ci s sum
+Xcarryout a b ci co carryout
+.ends
+
+Xtest clk1 clk2 clk3 s co FA
+.tran 80ns
+.plot clk1
+.plot clk2
+.plot clk3
+.plot s
+.plot co
