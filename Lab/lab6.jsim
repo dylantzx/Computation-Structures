@@ -1,0 +1,130 @@
+| include instruction macros and test jig
+.include ./50002/beta.uasm
+.include ./50002/lab6checkoff.uasm
+
+count_bull_cows: | your subroutine must have this name
+PUSH(LP) | standard subroutine entry sequence
+PUSH(BP)
+MOVE(SP, BP)
+
+PUSH(R2)
+PUSH(R3)
+PUSH(R1)
+PUSH(R4)
+PUSH(R5)
+PUSH(R6)
+PUSH(R7)
+PUSH(R8)
+PUSH(R9)
+PUSH(R10)
+PUSH(R11)
+PUSH(R12)
+PUSH(R13)
+
+| R1: temp
+| R2: a 
+| R3: b
+| R4: mask 
+| R5: i
+| R6: bulls
+| R7: a & mask
+| R8: b & mask
+| R9: cows
+| R10: atry
+| R11: j
+| R12: btemp
+| R13: btry
+
+LD(BP,-12,R2)
+LD(BP,-16,R3)
+CMOVE(0xF, R4) 
+
+BR(forLoop1End)          | Go to start of for loop for bulls
+
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+bulls:                   | When there is a bull
+ADD(R6, 1, R6)           | bulls = bulls + 1
+OR(R2,R4,R2)             | a = a | mask
+OR(R3,R4,R3)             | b = b | mask
+BR(shiftMask)            | Go to end of if statement
+
+forLoop1:
+AND(R2,R4,R7)
+AND(R3,R4,R8)
+CMPEQ(R7,R8,R1)          | if statement comparison
+BNE(R1, bulls)           | if true, go to bulls
+
+shiftMask:               | statements that are executed regardless, in the for loop
+SHLC(4, R4, R4) 
+ADDC(1,R5, R5)
+
+forLoop1End:
+CMPLTC(R5,4,R1)
+BNE(R1, forLoop1)
+
+MULC(R5,0,R5)            | Reset i to 1
+BR(forLoop2End)          | Go to start of for loop for cows
+
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+cows:
+CMOVE(R3,R12)            | btemp = b
+CMOVE(0xF, R4)           | mask = 0xF
+BR(innerLoopEnd)
+
+atryeqbtry:
+ADDC(R9,1,R9)            | cows = cows +1
+OR(R3,R4,R3)             | b = b | mask
+BR(shiftMask2)
+
+innerLoop:
+ANDC(R12, 0xF, R13)      | btry = btemp & 0xF 
+SHRC(R12,4,R12)          | btemp = btemp >> 4
+CMPEQ(R10, R13, R1)      | if statement comparison
+BNE(R1, atryeqbtry)  
+
+shiftMask2:
+SHLC(4, R4, R4) 
+ADDC(1,R11, R11)         | j = j + 1
+
+innerLoopEnd:
+CMPLTC(R11,4,R1)
+BNE(R1, innerLoop)
+ADDC(1,R5, R5)           | i = i + 1
+BR(forLoop2End)
+
+forLoop2:
+ANDC(R2, 0xF, R10)       | atry = a & 0xF 
+SHRC(R2,4,R2)            | a = a >> 4
+CMPEQC(R10,0xF,R1)       | if statement comparison
+BEQ(R1, cows)            | Checking for !=, thus if false, go to cow
+
+forLoop2End:
+CMPLTC(R5,4,R1)
+BNE(R1, forLoop2)
+SHLC(R6,4,R6)            | bulls << 4
+ADD(R6, R9, R0)          | return (bulls << 4) + cows
+
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+PUSH(R13)
+PUSH(R12)
+PUSH(R11)
+PUSH(R10)
+PUSH(R9)
+PUSH(R8)
+PUSH(R7)
+PUSH(R6)
+PUSH(R5)
+PUSH(R4)
+PUSH(R1)
+PUSH(R3)
+PUSH(R2)
+
+MOVE(BP,SP)              | standard subroutine exit sequence
+POP(BP)
+POP(LP)
+RTN()
+
+StackBase: LONG(.+4)     | Pointer to bottom of stack
+. = .+0x1000             | Reserve space for stack...
+
