@@ -1,0 +1,29 @@
+/*
+.include "./50002/nominal.jsim"
+.include "./50002/stdcell.jsim"
+.include "./50002/8clocks.jsim"
+*/
+.include "32bitFA_wozvn.jsim"
+
+.subckt pc clk reset pcsel[2:0] jt[31:0] pcp4sext[31:0] ia[31:0] pcp4[31:0]
+
+Xpcsel pcsel[0]#32 pcsel[1]#32 pcp4[31:0] pcp4sext[31:0] jt[31:0] illop[31:0] output[31:0] mux4
+Xpcsel2 pcsel[2]#32 output[31:0] xadr[31:0] q[31:0] mux2
+Xreset reset#32 q[31:0] rs[31:0] d[31:0] mux2
+Xpcdreg d[31:0] clk#32 ia[31:0] dreg
+Xpcp4 ia[31:0] four[31:0] pcp4[31:0] adder32_wozvn
+
+************************* illop, xadr, reset, constant 4 *************************
+// illop
+Xilp vdd 0#28 vdd 0#2 illop[31:0] knex
+
+// xadr
+Xxadr vdd 0#27 vdd 0#3 xadr[31:0] knex
+
+// reset
+Xr vdd 0#31 rs[31:0] knex
+
+// constant 4
+Xconst4 0#29 vdd 0#2 four[31:0] knex
+
+.ends

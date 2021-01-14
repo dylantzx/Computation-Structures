@@ -1,0 +1,12 @@
+/*
+.include "./50002/nominal.jsim"
+.include "./50002/stdcell.jsim"
+.include "./50002/lab5pc.jsim"
+.include "32bitFA_partA.jsim"
+*/
+
+.subckt pc clk reset ia[31:0]
+Xreset reset#32 pc_plus4_[31:0] 0#32 d[31:0] mux2
+Xpc d[31:0] clk#32 ia[31:0] dreg
+Xadder 0 ia[31:0] 0#29 vdd 0#2 pc_plus4_[31:0] z v n adder32
+.ends

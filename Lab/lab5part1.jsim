@@ -1,0 +1,40 @@
+.include "./50002/nominal.jsim"
+.include "./50002/stdcell.jsim"
+.include "./50002/lab5basicblock.jsim"
+.include "ctl.jsim"
+.include "pc.jsim"
+.include "regfile.jsim"
+.include "32bitFA_partF.jsim"
+
+.subckt beta clk reset ia[31:0] id[31:0] ma[31:0]
++ moe mrd[31:0] wr mwd[31:0]
+
+// regfile block
+Xregfblock clk werf ra2sel id[20:16] id[15:11] id[25:21]
++ wdata[31:0] radata[31:0] mwd[31:0] regfile
+
+
+// pc block
+Xpcblock clk reset ia[31:0] pc
+
+// ctl block
+Xctlsigblock reset id[31:26] ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr ctl
+
+
+// BSEL mux
+XSext id[15:0] D1[15:0] knex
+.connect id15#16 D1[31:16]
+Xbsel bsel#32 mwd[31:0] D1[31:0] B[31:0] mux2
+
+// WDSEL mux
+Xpcsel wdsel0#32 wdsel1#32 0#32 ma[31:0] mrd[31:0] 0#32 wdata[31:0] mux4
+
+// ALU
+Xalu alufn[5:0] radata[31:0] B[31:0] ma[31:0] z v n alu
+
+.ends
+
+.subckt knex id D1
+.connect id D1
+.ends
+

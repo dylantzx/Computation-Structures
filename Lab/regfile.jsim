@@ -1,0 +1,32 @@
+/*
+.include "./50002/nominal.jsim"
+.include "./50002/stdcell.jsim"
+.include "./50002/lab5regfile.jsim"
+*/
+
+.subckt regfile clk werf ra2sel ra[4:0] rb[4:0] rc[4:0]
++ wdata[31:0] radata[31:0] rbdata[31:0]
+
+XRA2SEL ra2sel#5 rb[4:0] rc[4:0] ra2mux[4:0] mux2
+
+Xand5 ra[4:0] z and5
+Xsel z#32 adata[31:0] 0#32 radata[31:0] mux2
+
+Xand5_2 ra2mux[4:0] y and5
+Xsel_2 y#32 bdata[31:0] 0#32 rbdata[31:0] mux2
+
+Xregfile
++ vdd 0 0 ra[4:0] adata[31:0] // A read port
++ vdd 0 0 ra2mux[4:0] bdata[31:0] // B read port
++ 0 clk werf rc[4:0] wdata[31:0] // write port
++ $memory width=32 nlocations=31
+
+.ends
+
+
+// and5 circuit
+.subckt and5 ra[4:0] z
+Xnand4 ra[4:1] i[1] nand4
+Xinvert ra[0] i[0] inverter
+Xnor2 i[0] i[1] z nor2
+.ends

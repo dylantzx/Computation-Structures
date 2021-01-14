@@ -1,0 +1,47 @@
+.include "./50002/nominal.jsim"
+.include "./50002/stdcell.jsim"
+.include "./50002/lab5checkoff.jsim"
+.include "ctlp2.jsim"
+.include "pcp2.jsim"
+.include "regfilep2.jsim"
+.include "32bitFA_partF.jsim"
+
+.subckt beta clk reset irq ia[31:0] id[31:0] ma[31:0] moe mrd[31:0] wr mwd[31:0]
+
+// pc block
+Xpc clk reset pcsel[2:0] jt[31] radata[30:2] 0#2 pcp4sext[31:0] ia[31:0] pcp4[31:0] pc
+
+// regfile block
+Xregfblock clk werf ra2sel id[20:16] id[15:11] id[25:21] wdata[31:0] radata[31:0] mwd[31:0] wasel regfile
+
+// ctl block
+Xctlsigblock reset intrpt[5:0] ra2sel bsel alufn[5:0] wdsel[1:0] werf moe wr pcsel[2:0] asel wasel Z ctl
+
+// interrupt
+XIrqOpcode 0 vdd 0 vdd#2 0 irqop[5:0] knex
+Xintrpt ia[31]#6 irq#6 id[31:26] id[31:26] irqop[5:0] id[31:26] intrpt[5:0] mux4
+
+// ASEL mux
+Xasel asel#32 radata[31:0] pcp4s[31:0] A[31:0] mux2
+
+// BSEL mux
+XBSext id[15:0] D1[15:0] knex
+.connect id15#16 D1[31:16]
+Xbsel bsel#32 mwd[31:0] D1[31:0] B[31:0] mux2
+
+// WDSEL mux
+Xpcsel wdsel[0]#32 wdsel[1]#32 pcp4[31:0] ma[31:0] mrd[31:0] 0#32 wdata[31:0] mux4
+
+// Sign extend *4: 4*SEXT(c)
+Xpcplus4sext pcp4[31:0] id[15]#14 id[15:0] 0#2 pcp4sext[31:0] adder32_wozvn
+
+// ALU
+Xalu alufn[5:0] A[31:0] B[31:0] ma[31:0] z_ v_ n_ alu
+
+// 31st bit of SEXT and jt
+Xpcp4s 0 pcp4sext[30:0] pcp4s[31:0] knex
+Xjt31 radata[31] ia[31] jt[31] and2
+
+// subckt inside 32bitFA_wozvn.jsim
+XZNOR radata[31:0] z znor 
+.ends
