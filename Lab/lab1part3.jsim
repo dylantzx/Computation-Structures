@@ -1,0 +1,18 @@
+.include "./50002/nominal.jsim"
+.include "./50002/lab1checkoff.jsim"
+
+* INVERTER: input is A, output is Z
+.subckt inv f Z
+MPD4 Z f 0 0 NENH sw=16 sl=1
+MPU4 Z f vdd vdd PENH sw=16 sl=1
+.ends
+
+.subckt F A B C Z
+MPD1 f C 0 0 NENH sw=8 sl=1 
+MPD2 f A node2 0 NENH sw=8 sl=1
+MPD3 node2 B 0 0 NENH sw=8 sl=1
+MPU1 f C node1 vdd PENH sw=8 sl=1
+MPU2 node1 A vdd vdd PENH sw=8 sl=1
+MPU3 node1 B vdd vdd PENH sw=8 sl=1
+Xinv f Z inv
+.ends
