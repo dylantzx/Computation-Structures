@@ -1,0 +1,17 @@
+/*
+.include "/50002/nominal.jsim"
+.include "/50002/stdcell.jsim"
+.include "/50002/lab3checkoff_6.jsim"
+*/
+.include "32bitFA_partA.jsim"
+.include "32bitFA_partB.jsim"
+.include "32bitFA_partC.jsim"
+.include "32bitFA_partD.jsim"
+
+.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0] z v n
+Xadder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n adder32
+Xboole32 ALUFN[3:0] A[31:0] B[31:0] boole[31:0] boole32
+Xshift32 ALUFN[1:0] A[31:0] B[4:0] shift[31:0] shift32
+Xcompare32 ALUFN[2:1] z v n cmp[31:0] compare32
+Xalu ALUFN5#32 ALUFN4#32 s[31:0] shift[31:0] boole[31:0] cmp[31:0] alu[31:0] mux4
+.ends

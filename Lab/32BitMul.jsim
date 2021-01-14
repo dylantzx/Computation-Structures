@@ -1,0 +1,651 @@
+.include "/50002/nominal.jsim"
+.include "/50002/stdcell.jsim"
+.include "32bitFA_partA.jsim"
+.include "32bitFA_partB.jsim"
+.include "32bitFA_partC.jsim"
+.include "32bitFA_partD.jsim"
+*.include "/50002/lab3multiply.jsim"
+.include "/50002/lab3checkoff_10.jsim"
+
+// Alu
+.subckt alu ALUFN[5:0] A[31:0] B[31:0] alu[31:0] z v n
+Xarith32 ALUFN[1:0] A[31:0] B[31:0] arith[31:0] z v n arith32
+Xboole32 ALUFN[3:0] A[31:0] B[31:0] boole[31:0] boole32
+Xshift32 ALUFN[1:0] A[31:0] B[4:0] shift[31:0] shift32
+Xcompare32 ALUFN[2:1] z v n cmp[31:0] compare32
+Xalu ALUFN5#32 ALUFN4#32 arith[31:0] shift[31:0] boole[31:0] cmp[31:0] alu[31:0] mux4
+.ends
+
+// Arithmetic: Adder/Subtractor or Multiplier
+.subckt arith32 ALUFN[1:0] A[31:0] B[31:0] arith[31:0] z v n 
+Xadder32bit ALUFN[0] A[31:0] B[31:0] s[31:0] z v n adder32
+Xmultiplier32bit ALUFN[1] A[31:0] B[31:0] alu[31:0] mul32
+Xid ALUFN[1]#32 s[31:0] alu[31:0] arith[31:0] mux2
+.ends
+
+// Multiplier
+.subckt mul32 ALUFN1 A[31:0] B[31:0] alu[31:0] 
+XPartialProd0 A[31:0]  B0#32   A[31:0]B0 and2
+XPartialProd1 A[30:0]  B1#31   A[30:0]B1 and2
+XPartialProd2 A[29:0]  B2#30   A[29:0]B2 and2
+XPartialProd3 A[28:0]  B3#29   A[28:0]B3 and2
+XPartialProd4 A[27:0]  B4#28   A[27:0]B4 and2
+XPartialProd5 A[26:0]  B5#27   A[26:0]B5 and2
+XPartialProd6 A[25:0]  B6#26   A[25:0]B6 and2
+XPartialProd7 A[24:0]  B7#25   A[24:0]B7 and2
+XPartialProd8 A[23:0]  B8#24   A[23:0]B8 and2
+XPartialProd9 A[22:0]  B9#23   A[22:0]B9 and2
+XPartialProd10 A[21:0]  B10#22   A[21:0]B10 and2
+XPartialProd11 A[20:0]  B11#21   A[20:0]B11 and2
+XPartialProd12 A[19:0]  B12#20   A[19:0]B12 and2
+XPartialProd13 A[18:0]  B13#19   A[18:0]B13 and2
+XPartialProd14 A[17:0]  B14#18   A[17:0]B14 and2
+XPartialProd15 A[16:0]  B15#17   A[16:0]B15 and2
+XPartialProd16 A[15:0]  B16#16   A[15:0]B16 and2
+XPartialProd17 A[14:0]  B17#15   A[14:0]B17 and2
+XPartialProd18 A[13:0]  B18#14   A[13:0]B18 and2
+XPartialProd19 A[12:0]  B19#13   A[12:0]B19 and2
+XPartialProd20 A[11:0]  B20#12   A[11:0]B20 and2
+XPartialProd21 A[10:0]  B21#11   A[10:0]B21 and2
+XPartialProd22 A[9:0]  B22#10   A[9:0]B22 and2
+XPartialProd23 A[8:0]  B23#9   A[8:0]B23 and2
+XPartialProd24 A[7:0]  B24#8   A[7:0]B24 and2
+XPartialProd25 A[6:0]  B25#7   A[6:0]B25 and2
+XPartialProd26 A[5:0]  B26#6   A[5:0]B26 and2
+XPartialProd27 A[4:0]  B27#5   A[4:0]B27 and2
+XPartialProd28 A[3:0]  B28#4   A[3:0]B28 and2
+XPartialProd29 A[2:0]  B29#3   A[2:0]B29 and2
+XPartialProd30 A[1:0]  B30#2   A[1:0]B30 and2
+XPartialProd31 A[0:0]  B31#1   A[0:0]B31 and2
+
+// Column 0
+.connect A0B0 alu0
+
+// Column 1
+Xadd_col10 A1B0    A0B1   0         alu1    ci_c1n0 FA
+
+
+// Column 2
+Xadd_col20 A2B0    A1B1   ci_c1n0   s_c21    ci_c2n0 FA
+Xadd_col21 s_c21   A0B2   0         alu2     ci_c2n1 FA
+
+
+// Column 3
+Xadd_col30 A3B0    A2B1   ci_c2n0   s_c31    ci_c3n0 FA
+Xadd_col31 s_c31   A1B2   ci_c2n1   s_c32    ci_c3n1 FA
+Xadd_col32 s_c32   A0B3   0         alu3     ci_c3n2 FA
+
+
+// Column 4
+Xadd_col40 A4B0    A3B1   ci_c3n0   s_c41    ci_c4n0 FA
+Xadd_col41 s_c41   A2B2   ci_c3n1   s_c42    ci_c4n1 FA
+Xadd_col42 s_c42   A1B3   ci_c3n2   s_c43    ci_c4n2 FA
+Xadd_col43 s_c43   A0B4   0         alu4     ci_c4n3 FA
+
+
+// Column 5
+Xadd_col50 A5B0    A4B1   ci_c4n0   s_c51    ci_c5n0 FA
+Xadd_col51 s_c51   A3B2   ci_c4n1   s_c52    ci_c5n1 FA
+Xadd_col52 s_c52   A2B3   ci_c4n2   s_c53    ci_c5n2 FA
+Xadd_col53 s_c53   A1B4   ci_c4n3   s_c54    ci_c5n3 FA
+Xadd_col54 s_c54   A0B5   0         alu5     ci_c5n4 FA
+
+
+// Column 6
+Xadd_col60 A6B0    A5B1   ci_c5n0   s_c61    ci_c6n0 FA
+Xadd_col61 s_c61   A4B2   ci_c5n1   s_c62    ci_c6n1 FA
+Xadd_col62 s_c62   A3B3   ci_c5n2   s_c63    ci_c6n2 FA
+Xadd_col63 s_c63   A2B4   ci_c5n3   s_c64    ci_c6n3 FA
+Xadd_col64 s_c64   A1B5   ci_c5n4   s_c65    ci_c6n4 FA
+Xadd_col65 s_c65   A0B6   0         alu6     ci_c6n5 FA
+
+
+// Column 7
+Xadd_col70 A7B0    A6B1   ci_c6n0   s_c71    ci_c7n0 FA
+Xadd_col71 s_c71   A5B2   ci_c6n1   s_c72    ci_c7n1 FA
+Xadd_col72 s_c72   A4B3   ci_c6n2   s_c73    ci_c7n2 FA
+Xadd_col73 s_c73   A3B4   ci_c6n3   s_c74    ci_c7n3 FA
+Xadd_col74 s_c74   A2B5   ci_c6n4   s_c75    ci_c7n4 FA
+Xadd_col75 s_c75   A1B6   ci_c6n5   s_c76    ci_c7n5 FA
+Xadd_col76 s_c76   A0B7   0         alu7     ci_c7n6 FA
+
+
+// Column 8
+Xadd_col80 A8B0    A7B1   ci_c7n0   s_c81    ci_c8n0 FA
+Xadd_col81 s_c81   A6B2   ci_c7n1   s_c82    ci_c8n1 FA
+Xadd_col82 s_c82   A5B3   ci_c7n2   s_c83    ci_c8n2 FA
+Xadd_col83 s_c83   A4B4   ci_c7n3   s_c84    ci_c8n3 FA
+Xadd_col84 s_c84   A3B5   ci_c7n4   s_c85    ci_c8n4 FA
+Xadd_col85 s_c85   A2B6   ci_c7n5   s_c86    ci_c8n5 FA
+Xadd_col86 s_c86   A1B7   ci_c7n6   s_c87    ci_c8n6 FA
+Xadd_col87 s_c87   A0B8   0         alu8     ci_c8n7 FA
+
+
+// Column 9
+Xadd_col90 A9B0    A8B1   ci_c8n0   s_c91    ci_c9n0 FA
+Xadd_col91 s_c91   A7B2   ci_c8n1   s_c92    ci_c9n1 FA
+Xadd_col92 s_c92   A6B3   ci_c8n2   s_c93    ci_c9n2 FA
+Xadd_col93 s_c93   A5B4   ci_c8n3   s_c94    ci_c9n3 FA
+Xadd_col94 s_c94   A4B5   ci_c8n4   s_c95    ci_c9n4 FA
+Xadd_col95 s_c95   A3B6   ci_c8n5   s_c96    ci_c9n5 FA
+Xadd_col96 s_c96   A2B7   ci_c8n6   s_c97    ci_c9n6 FA
+Xadd_col97 s_c97   A1B8   ci_c8n7   s_c98    ci_c9n7 FA
+Xadd_col98 s_c98   A0B9   0         alu9     ci_c9n8 FA
+
+
+// Column 10
+Xadd_col100 A10B0    A9B1   ci_c9n0   s_c101    ci_c10n0 FA
+Xadd_col101 s_c101   A8B2   ci_c9n1   s_c102    ci_c10n1 FA
+Xadd_col102 s_c102   A7B3   ci_c9n2   s_c103    ci_c10n2 FA
+Xadd_col103 s_c103   A6B4   ci_c9n3   s_c104    ci_c10n3 FA
+Xadd_col104 s_c104   A5B5   ci_c9n4   s_c105    ci_c10n4 FA
+Xadd_col105 s_c105   A4B6   ci_c9n5   s_c106    ci_c10n5 FA
+Xadd_col106 s_c106   A3B7   ci_c9n6   s_c107    ci_c10n6 FA
+Xadd_col107 s_c107   A2B8   ci_c9n7   s_c108    ci_c10n7 FA
+Xadd_col108 s_c108   A1B9   ci_c9n8   s_c109    ci_c10n8 FA
+Xadd_col109 s_c109   A0B10   0         alu10     ci_c10n9 FA
+
+
+// Column 11
+Xadd_col110 A11B0    A10B1   ci_c10n0   s_c111    ci_c11n0 FA
+Xadd_col111 s_c111   A9B2   ci_c10n1   s_c112    ci_c11n1 FA
+Xadd_col112 s_c112   A8B3   ci_c10n2   s_c113    ci_c11n2 FA
+Xadd_col113 s_c113   A7B4   ci_c10n3   s_c114    ci_c11n3 FA
+Xadd_col114 s_c114   A6B5   ci_c10n4   s_c115    ci_c11n4 FA
+Xadd_col115 s_c115   A5B6   ci_c10n5   s_c116    ci_c11n5 FA
+Xadd_col116 s_c116   A4B7   ci_c10n6   s_c117    ci_c11n6 FA
+Xadd_col117 s_c117   A3B8   ci_c10n7   s_c118    ci_c11n7 FA
+Xadd_col118 s_c118   A2B9   ci_c10n8   s_c119    ci_c11n8 FA
+Xadd_col119 s_c119   A1B10   ci_c10n9   s_c1110    ci_c11n9 FA
+Xadd_col1110 s_c1110   A0B11   0         alu11     ci_c11n10 FA
+
+
+// Column 12
+Xadd_col120 A12B0    A11B1   ci_c11n0   s_c121    ci_c12n0 FA
+Xadd_col121 s_c121   A10B2   ci_c11n1   s_c122    ci_c12n1 FA
+Xadd_col122 s_c122   A9B3   ci_c11n2   s_c123    ci_c12n2 FA
+Xadd_col123 s_c123   A8B4   ci_c11n3   s_c124    ci_c12n3 FA
+Xadd_col124 s_c124   A7B5   ci_c11n4   s_c125    ci_c12n4 FA
+Xadd_col125 s_c125   A6B6   ci_c11n5   s_c126    ci_c12n5 FA
+Xadd_col126 s_c126   A5B7   ci_c11n6   s_c127    ci_c12n6 FA
+Xadd_col127 s_c127   A4B8   ci_c11n7   s_c128    ci_c12n7 FA
+Xadd_col128 s_c128   A3B9   ci_c11n8   s_c129    ci_c12n8 FA
+Xadd_col129 s_c129   A2B10   ci_c11n9   s_c1210    ci_c12n9 FA
+Xadd_col1210 s_c1210   A1B11   ci_c11n10   s_c1211    ci_c12n10 FA
+Xadd_col1211 s_c1211   A0B12   0         alu12     ci_c12n11 FA
+
+
+// Column 13
+Xadd_col130 A13B0    A12B1   ci_c12n0   s_c131    ci_c13n0 FA
+Xadd_col131 s_c131   A11B2   ci_c12n1   s_c132    ci_c13n1 FA
+Xadd_col132 s_c132   A10B3   ci_c12n2   s_c133    ci_c13n2 FA
+Xadd_col133 s_c133   A9B4   ci_c12n3   s_c134    ci_c13n3 FA
+Xadd_col134 s_c134   A8B5   ci_c12n4   s_c135    ci_c13n4 FA
+Xadd_col135 s_c135   A7B6   ci_c12n5   s_c136    ci_c13n5 FA
+Xadd_col136 s_c136   A6B7   ci_c12n6   s_c137    ci_c13n6 FA
+Xadd_col137 s_c137   A5B8   ci_c12n7   s_c138    ci_c13n7 FA
+Xadd_col138 s_c138   A4B9   ci_c12n8   s_c139    ci_c13n8 FA
+Xadd_col139 s_c139   A3B10   ci_c12n9   s_c1310    ci_c13n9 FA
+Xadd_col1310 s_c1310   A2B11   ci_c12n10   s_c1311    ci_c13n10 FA
+Xadd_col1311 s_c1311   A1B12   ci_c12n11   s_c1312    ci_c13n11 FA
+Xadd_col1312 s_c1312   A0B13   0         alu13     ci_c13n12 FA
+
+
+// Column 14
+Xadd_col140 A14B0    A13B1   ci_c13n0   s_c141    ci_c14n0 FA
+Xadd_col141 s_c141   A12B2   ci_c13n1   s_c142    ci_c14n1 FA
+Xadd_col142 s_c142   A11B3   ci_c13n2   s_c143    ci_c14n2 FA
+Xadd_col143 s_c143   A10B4   ci_c13n3   s_c144    ci_c14n3 FA
+Xadd_col144 s_c144   A9B5   ci_c13n4   s_c145    ci_c14n4 FA
+Xadd_col145 s_c145   A8B6   ci_c13n5   s_c146    ci_c14n5 FA
+Xadd_col146 s_c146   A7B7   ci_c13n6   s_c147    ci_c14n6 FA
+Xadd_col147 s_c147   A6B8   ci_c13n7   s_c148    ci_c14n7 FA
+Xadd_col148 s_c148   A5B9   ci_c13n8   s_c149    ci_c14n8 FA
+Xadd_col149 s_c149   A4B10   ci_c13n9   s_c1410    ci_c14n9 FA
+Xadd_col1410 s_c1410   A3B11   ci_c13n10   s_c1411    ci_c14n10 FA
+Xadd_col1411 s_c1411   A2B12   ci_c13n11   s_c1412    ci_c14n11 FA
+Xadd_col1412 s_c1412   A1B13   ci_c13n12   s_c1413    ci_c14n12 FA
+Xadd_col1413 s_c1413   A0B14   0         alu14     ci_c14n13 FA
+
+
+// Column 15
+Xadd_col150 A15B0    A14B1   ci_c14n0   s_c151    ci_c15n0 FA
+Xadd_col151 s_c151   A13B2   ci_c14n1   s_c152    ci_c15n1 FA
+Xadd_col152 s_c152   A12B3   ci_c14n2   s_c153    ci_c15n2 FA
+Xadd_col153 s_c153   A11B4   ci_c14n3   s_c154    ci_c15n3 FA
+Xadd_col154 s_c154   A10B5   ci_c14n4   s_c155    ci_c15n4 FA
+Xadd_col155 s_c155   A9B6   ci_c14n5   s_c156    ci_c15n5 FA
+Xadd_col156 s_c156   A8B7   ci_c14n6   s_c157    ci_c15n6 FA
+Xadd_col157 s_c157   A7B8   ci_c14n7   s_c158    ci_c15n7 FA
+Xadd_col158 s_c158   A6B9   ci_c14n8   s_c159    ci_c15n8 FA
+Xadd_col159 s_c159   A5B10   ci_c14n9   s_c1510    ci_c15n9 FA
+Xadd_col1510 s_c1510   A4B11   ci_c14n10   s_c1511    ci_c15n10 FA
+Xadd_col1511 s_c1511   A3B12   ci_c14n11   s_c1512    ci_c15n11 FA
+Xadd_col1512 s_c1512   A2B13   ci_c14n12   s_c1513    ci_c15n12 FA
+Xadd_col1513 s_c1513   A1B14   ci_c14n13   s_c1514    ci_c15n13 FA
+Xadd_col1514 s_c1514   A0B15   0         alu15     ci_c15n14 FA
+
+
+// Column 16
+Xadd_col160 A16B0    A15B1   ci_c15n0   s_c161    ci_c16n0 FA
+Xadd_col161 s_c161   A14B2   ci_c15n1   s_c162    ci_c16n1 FA
+Xadd_col162 s_c162   A13B3   ci_c15n2   s_c163    ci_c16n2 FA
+Xadd_col163 s_c163   A12B4   ci_c15n3   s_c164    ci_c16n3 FA
+Xadd_col164 s_c164   A11B5   ci_c15n4   s_c165    ci_c16n4 FA
+Xadd_col165 s_c165   A10B6   ci_c15n5   s_c166    ci_c16n5 FA
+Xadd_col166 s_c166   A9B7   ci_c15n6   s_c167    ci_c16n6 FA
+Xadd_col167 s_c167   A8B8   ci_c15n7   s_c168    ci_c16n7 FA
+Xadd_col168 s_c168   A7B9   ci_c15n8   s_c169    ci_c16n8 FA
+Xadd_col169 s_c169   A6B10   ci_c15n9   s_c1610    ci_c16n9 FA
+Xadd_col1610 s_c1610   A5B11   ci_c15n10   s_c1611    ci_c16n10 FA
+Xadd_col1611 s_c1611   A4B12   ci_c15n11   s_c1612    ci_c16n11 FA
+Xadd_col1612 s_c1612   A3B13   ci_c15n12   s_c1613    ci_c16n12 FA
+Xadd_col1613 s_c1613   A2B14   ci_c15n13   s_c1614    ci_c16n13 FA
+Xadd_col1614 s_c1614   A1B15   ci_c15n14   s_c1615    ci_c16n14 FA
+Xadd_col1615 s_c1615   A0B16   0         alu16     ci_c16n15 FA
+
+
+// Column 17
+Xadd_col170 A17B0    A16B1   ci_c16n0   s_c171    ci_c17n0 FA
+Xadd_col171 s_c171   A15B2   ci_c16n1   s_c172    ci_c17n1 FA
+Xadd_col172 s_c172   A14B3   ci_c16n2   s_c173    ci_c17n2 FA
+Xadd_col173 s_c173   A13B4   ci_c16n3   s_c174    ci_c17n3 FA
+Xadd_col174 s_c174   A12B5   ci_c16n4   s_c175    ci_c17n4 FA
+Xadd_col175 s_c175   A11B6   ci_c16n5   s_c176    ci_c17n5 FA
+Xadd_col176 s_c176   A10B7   ci_c16n6   s_c177    ci_c17n6 FA
+Xadd_col177 s_c177   A9B8   ci_c16n7   s_c178    ci_c17n7 FA
+Xadd_col178 s_c178   A8B9   ci_c16n8   s_c179    ci_c17n8 FA
+Xadd_col179 s_c179   A7B10   ci_c16n9   s_c1710    ci_c17n9 FA
+Xadd_col1710 s_c1710   A6B11   ci_c16n10   s_c1711    ci_c17n10 FA
+Xadd_col1711 s_c1711   A5B12   ci_c16n11   s_c1712    ci_c17n11 FA
+Xadd_col1712 s_c1712   A4B13   ci_c16n12   s_c1713    ci_c17n12 FA
+Xadd_col1713 s_c1713   A3B14   ci_c16n13   s_c1714    ci_c17n13 FA
+Xadd_col1714 s_c1714   A2B15   ci_c16n14   s_c1715    ci_c17n14 FA
+Xadd_col1715 s_c1715   A1B16   ci_c16n15   s_c1716    ci_c17n15 FA
+Xadd_col1716 s_c1716   A0B17   0         alu17     ci_c17n16 FA
+
+
+// Column 18
+Xadd_col180 A18B0    A17B1   ci_c17n0   s_c181    ci_c18n0 FA
+Xadd_col181 s_c181   A16B2   ci_c17n1   s_c182    ci_c18n1 FA
+Xadd_col182 s_c182   A15B3   ci_c17n2   s_c183    ci_c18n2 FA
+Xadd_col183 s_c183   A14B4   ci_c17n3   s_c184    ci_c18n3 FA
+Xadd_col184 s_c184   A13B5   ci_c17n4   s_c185    ci_c18n4 FA
+Xadd_col185 s_c185   A12B6   ci_c17n5   s_c186    ci_c18n5 FA
+Xadd_col186 s_c186   A11B7   ci_c17n6   s_c187    ci_c18n6 FA
+Xadd_col187 s_c187   A10B8   ci_c17n7   s_c188    ci_c18n7 FA
+Xadd_col188 s_c188   A9B9   ci_c17n8   s_c189    ci_c18n8 FA
+Xadd_col189 s_c189   A8B10   ci_c17n9   s_c1810    ci_c18n9 FA
+Xadd_col1810 s_c1810   A7B11   ci_c17n10   s_c1811    ci_c18n10 FA
+Xadd_col1811 s_c1811   A6B12   ci_c17n11   s_c1812    ci_c18n11 FA
+Xadd_col1812 s_c1812   A5B13   ci_c17n12   s_c1813    ci_c18n12 FA
+Xadd_col1813 s_c1813   A4B14   ci_c17n13   s_c1814    ci_c18n13 FA
+Xadd_col1814 s_c1814   A3B15   ci_c17n14   s_c1815    ci_c18n14 FA
+Xadd_col1815 s_c1815   A2B16   ci_c17n15   s_c1816    ci_c18n15 FA
+Xadd_col1816 s_c1816   A1B17   ci_c17n16   s_c1817    ci_c18n16 FA
+Xadd_col1817 s_c1817   A0B18   0         alu18     ci_c18n17 FA
+
+
+// Column 19
+Xadd_col190 A19B0    A18B1   ci_c18n0   s_c191    ci_c19n0 FA
+Xadd_col191 s_c191   A17B2   ci_c18n1   s_c192    ci_c19n1 FA
+Xadd_col192 s_c192   A16B3   ci_c18n2   s_c193    ci_c19n2 FA
+Xadd_col193 s_c193   A15B4   ci_c18n3   s_c194    ci_c19n3 FA
+Xadd_col194 s_c194   A14B5   ci_c18n4   s_c195    ci_c19n4 FA
+Xadd_col195 s_c195   A13B6   ci_c18n5   s_c196    ci_c19n5 FA
+Xadd_col196 s_c196   A12B7   ci_c18n6   s_c197    ci_c19n6 FA
+Xadd_col197 s_c197   A11B8   ci_c18n7   s_c198    ci_c19n7 FA
+Xadd_col198 s_c198   A10B9   ci_c18n8   s_c199    ci_c19n8 FA
+Xadd_col199 s_c199   A9B10   ci_c18n9   s_c1910    ci_c19n9 FA
+Xadd_col1910 s_c1910   A8B11   ci_c18n10   s_c1911    ci_c19n10 FA
+Xadd_col1911 s_c1911   A7B12   ci_c18n11   s_c1912    ci_c19n11 FA
+Xadd_col1912 s_c1912   A6B13   ci_c18n12   s_c1913    ci_c19n12 FA
+Xadd_col1913 s_c1913   A5B14   ci_c18n13   s_c1914    ci_c19n13 FA
+Xadd_col1914 s_c1914   A4B15   ci_c18n14   s_c1915    ci_c19n14 FA
+Xadd_col1915 s_c1915   A3B16   ci_c18n15   s_c1916    ci_c19n15 FA
+Xadd_col1916 s_c1916   A2B17   ci_c18n16   s_c1917    ci_c19n16 FA
+Xadd_col1917 s_c1917   A1B18   ci_c18n17   s_c1918    ci_c19n17 FA
+Xadd_col1918 s_c1918   A0B19   0         alu19     ci_c19n18 FA
+
+
+// Column 20
+Xadd_col200 A20B0    A19B1   ci_c19n0   s_c201    ci_c20n0 FA
+Xadd_col201 s_c201   A18B2   ci_c19n1   s_c202    ci_c20n1 FA
+Xadd_col202 s_c202   A17B3   ci_c19n2   s_c203    ci_c20n2 FA
+Xadd_col203 s_c203   A16B4   ci_c19n3   s_c204    ci_c20n3 FA
+Xadd_col204 s_c204   A15B5   ci_c19n4   s_c205    ci_c20n4 FA
+Xadd_col205 s_c205   A14B6   ci_c19n5   s_c206    ci_c20n5 FA
+Xadd_col206 s_c206   A13B7   ci_c19n6   s_c207    ci_c20n6 FA
+Xadd_col207 s_c207   A12B8   ci_c19n7   s_c208    ci_c20n7 FA
+Xadd_col208 s_c208   A11B9   ci_c19n8   s_c209    ci_c20n8 FA
+Xadd_col209 s_c209   A10B10   ci_c19n9   s_c2010    ci_c20n9 FA
+Xadd_col2010 s_c2010   A9B11   ci_c19n10   s_c2011    ci_c20n10 FA
+Xadd_col2011 s_c2011   A8B12   ci_c19n11   s_c2012    ci_c20n11 FA
+Xadd_col2012 s_c2012   A7B13   ci_c19n12   s_c2013    ci_c20n12 FA
+Xadd_col2013 s_c2013   A6B14   ci_c19n13   s_c2014    ci_c20n13 FA
+Xadd_col2014 s_c2014   A5B15   ci_c19n14   s_c2015    ci_c20n14 FA
+Xadd_col2015 s_c2015   A4B16   ci_c19n15   s_c2016    ci_c20n15 FA
+Xadd_col2016 s_c2016   A3B17   ci_c19n16   s_c2017    ci_c20n16 FA
+Xadd_col2017 s_c2017   A2B18   ci_c19n17   s_c2018    ci_c20n17 FA
+Xadd_col2018 s_c2018   A1B19   ci_c19n18   s_c2019    ci_c20n18 FA
+Xadd_col2019 s_c2019   A0B20   0         alu20     ci_c20n19 FA
+
+
+// Column 21
+Xadd_col210 A21B0    A20B1   ci_c20n0   s_c211    ci_c21n0 FA
+Xadd_col211 s_c211   A19B2   ci_c20n1   s_c212    ci_c21n1 FA
+Xadd_col212 s_c212   A18B3   ci_c20n2   s_c213    ci_c21n2 FA
+Xadd_col213 s_c213   A17B4   ci_c20n3   s_c214    ci_c21n3 FA
+Xadd_col214 s_c214   A16B5   ci_c20n4   s_c215    ci_c21n4 FA
+Xadd_col215 s_c215   A15B6   ci_c20n5   s_c216    ci_c21n5 FA
+Xadd_col216 s_c216   A14B7   ci_c20n6   s_c217    ci_c21n6 FA
+Xadd_col217 s_c217   A13B8   ci_c20n7   s_c218    ci_c21n7 FA
+Xadd_col218 s_c218   A12B9   ci_c20n8   s_c219    ci_c21n8 FA
+Xadd_col219 s_c219   A11B10   ci_c20n9   s_c2110    ci_c21n9 FA
+Xadd_col2110 s_c2110   A10B11   ci_c20n10   s_c2111    ci_c21n10 FA
+Xadd_col2111 s_c2111   A9B12   ci_c20n11   s_c2112    ci_c21n11 FA
+Xadd_col2112 s_c2112   A8B13   ci_c20n12   s_c2113    ci_c21n12 FA
+Xadd_col2113 s_c2113   A7B14   ci_c20n13   s_c2114    ci_c21n13 FA
+Xadd_col2114 s_c2114   A6B15   ci_c20n14   s_c2115    ci_c21n14 FA
+Xadd_col2115 s_c2115   A5B16   ci_c20n15   s_c2116    ci_c21n15 FA
+Xadd_col2116 s_c2116   A4B17   ci_c20n16   s_c2117    ci_c21n16 FA
+Xadd_col2117 s_c2117   A3B18   ci_c20n17   s_c2118    ci_c21n17 FA
+Xadd_col2118 s_c2118   A2B19   ci_c20n18   s_c2119    ci_c21n18 FA
+Xadd_col2119 s_c2119   A1B20   ci_c20n19   s_c2120    ci_c21n19 FA
+Xadd_col2120 s_c2120   A0B21   0         alu21     ci_c21n20 FA
+
+
+// Column 22
+Xadd_col220 A22B0    A21B1   ci_c21n0   s_c221    ci_c22n0 FA
+Xadd_col221 s_c221   A20B2   ci_c21n1   s_c222    ci_c22n1 FA
+Xadd_col222 s_c222   A19B3   ci_c21n2   s_c223    ci_c22n2 FA
+Xadd_col223 s_c223   A18B4   ci_c21n3   s_c224    ci_c22n3 FA
+Xadd_col224 s_c224   A17B5   ci_c21n4   s_c225    ci_c22n4 FA
+Xadd_col225 s_c225   A16B6   ci_c21n5   s_c226    ci_c22n5 FA
+Xadd_col226 s_c226   A15B7   ci_c21n6   s_c227    ci_c22n6 FA
+Xadd_col227 s_c227   A14B8   ci_c21n7   s_c228    ci_c22n7 FA
+Xadd_col228 s_c228   A13B9   ci_c21n8   s_c229    ci_c22n8 FA
+Xadd_col229 s_c229   A12B10   ci_c21n9   s_c2210    ci_c22n9 FA
+Xadd_col2210 s_c2210   A11B11   ci_c21n10   s_c2211    ci_c22n10 FA
+Xadd_col2211 s_c2211   A10B12   ci_c21n11   s_c2212    ci_c22n11 FA
+Xadd_col2212 s_c2212   A9B13   ci_c21n12   s_c2213    ci_c22n12 FA
+Xadd_col2213 s_c2213   A8B14   ci_c21n13   s_c2214    ci_c22n13 FA
+Xadd_col2214 s_c2214   A7B15   ci_c21n14   s_c2215    ci_c22n14 FA
+Xadd_col2215 s_c2215   A6B16   ci_c21n15   s_c2216    ci_c22n15 FA
+Xadd_col2216 s_c2216   A5B17   ci_c21n16   s_c2217    ci_c22n16 FA
+Xadd_col2217 s_c2217   A4B18   ci_c21n17   s_c2218    ci_c22n17 FA
+Xadd_col2218 s_c2218   A3B19   ci_c21n18   s_c2219    ci_c22n18 FA
+Xadd_col2219 s_c2219   A2B20   ci_c21n19   s_c2220    ci_c22n19 FA
+Xadd_col2220 s_c2220   A1B21   ci_c21n20   s_c2221    ci_c22n20 FA
+Xadd_col2221 s_c2221   A0B22   0         alu22     ci_c22n21 FA
+
+
+// Column 23
+Xadd_col230 A23B0    A22B1   ci_c22n0   s_c231    ci_c23n0 FA
+Xadd_col231 s_c231   A21B2   ci_c22n1   s_c232    ci_c23n1 FA
+Xadd_col232 s_c232   A20B3   ci_c22n2   s_c233    ci_c23n2 FA
+Xadd_col233 s_c233   A19B4   ci_c22n3   s_c234    ci_c23n3 FA
+Xadd_col234 s_c234   A18B5   ci_c22n4   s_c235    ci_c23n4 FA
+Xadd_col235 s_c235   A17B6   ci_c22n5   s_c236    ci_c23n5 FA
+Xadd_col236 s_c236   A16B7   ci_c22n6   s_c237    ci_c23n6 FA
+Xadd_col237 s_c237   A15B8   ci_c22n7   s_c238    ci_c23n7 FA
+Xadd_col238 s_c238   A14B9   ci_c22n8   s_c239    ci_c23n8 FA
+Xadd_col239 s_c239   A13B10   ci_c22n9   s_c2310    ci_c23n9 FA
+Xadd_col2310 s_c2310   A12B11   ci_c22n10   s_c2311    ci_c23n10 FA
+Xadd_col2311 s_c2311   A11B12   ci_c22n11   s_c2312    ci_c23n11 FA
+Xadd_col2312 s_c2312   A10B13   ci_c22n12   s_c2313    ci_c23n12 FA
+Xadd_col2313 s_c2313   A9B14   ci_c22n13   s_c2314    ci_c23n13 FA
+Xadd_col2314 s_c2314   A8B15   ci_c22n14   s_c2315    ci_c23n14 FA
+Xadd_col2315 s_c2315   A7B16   ci_c22n15   s_c2316    ci_c23n15 FA
+Xadd_col2316 s_c2316   A6B17   ci_c22n16   s_c2317    ci_c23n16 FA
+Xadd_col2317 s_c2317   A5B18   ci_c22n17   s_c2318    ci_c23n17 FA
+Xadd_col2318 s_c2318   A4B19   ci_c22n18   s_c2319    ci_c23n18 FA
+Xadd_col2319 s_c2319   A3B20   ci_c22n19   s_c2320    ci_c23n19 FA
+Xadd_col2320 s_c2320   A2B21   ci_c22n20   s_c2321    ci_c23n20 FA
+Xadd_col2321 s_c2321   A1B22   ci_c22n21   s_c2322    ci_c23n21 FA
+Xadd_col2322 s_c2322   A0B23   0         alu23     ci_c23n22 FA
+
+
+// Column 24
+Xadd_col240 A24B0    A23B1   ci_c23n0   s_c241    ci_c24n0 FA
+Xadd_col241 s_c241   A22B2   ci_c23n1   s_c242    ci_c24n1 FA
+Xadd_col242 s_c242   A21B3   ci_c23n2   s_c243    ci_c24n2 FA
+Xadd_col243 s_c243   A20B4   ci_c23n3   s_c244    ci_c24n3 FA
+Xadd_col244 s_c244   A19B5   ci_c23n4   s_c245    ci_c24n4 FA
+Xadd_col245 s_c245   A18B6   ci_c23n5   s_c246    ci_c24n5 FA
+Xadd_col246 s_c246   A17B7   ci_c23n6   s_c247    ci_c24n6 FA
+Xadd_col247 s_c247   A16B8   ci_c23n7   s_c248    ci_c24n7 FA
+Xadd_col248 s_c248   A15B9   ci_c23n8   s_c249    ci_c24n8 FA
+Xadd_col249 s_c249   A14B10   ci_c23n9   s_c2410    ci_c24n9 FA
+Xadd_col2410 s_c2410   A13B11   ci_c23n10   s_c2411    ci_c24n10 FA
+Xadd_col2411 s_c2411   A12B12   ci_c23n11   s_c2412    ci_c24n11 FA
+Xadd_col2412 s_c2412   A11B13   ci_c23n12   s_c2413    ci_c24n12 FA
+Xadd_col2413 s_c2413   A10B14   ci_c23n13   s_c2414    ci_c24n13 FA
+Xadd_col2414 s_c2414   A9B15   ci_c23n14   s_c2415    ci_c24n14 FA
+Xadd_col2415 s_c2415   A8B16   ci_c23n15   s_c2416    ci_c24n15 FA
+Xadd_col2416 s_c2416   A7B17   ci_c23n16   s_c2417    ci_c24n16 FA
+Xadd_col2417 s_c2417   A6B18   ci_c23n17   s_c2418    ci_c24n17 FA
+Xadd_col2418 s_c2418   A5B19   ci_c23n18   s_c2419    ci_c24n18 FA
+Xadd_col2419 s_c2419   A4B20   ci_c23n19   s_c2420    ci_c24n19 FA
+Xadd_col2420 s_c2420   A3B21   ci_c23n20   s_c2421    ci_c24n20 FA
+Xadd_col2421 s_c2421   A2B22   ci_c23n21   s_c2422    ci_c24n21 FA
+Xadd_col2422 s_c2422   A1B23   ci_c23n22   s_c2423    ci_c24n22 FA
+Xadd_col2423 s_c2423   A0B24   0         alu24     ci_c24n23 FA
+
+
+// Column 25
+Xadd_col250 A25B0    A24B1   ci_c24n0   s_c251    ci_c25n0 FA
+Xadd_col251 s_c251   A23B2   ci_c24n1   s_c252    ci_c25n1 FA
+Xadd_col252 s_c252   A22B3   ci_c24n2   s_c253    ci_c25n2 FA
+Xadd_col253 s_c253   A21B4   ci_c24n3   s_c254    ci_c25n3 FA
+Xadd_col254 s_c254   A20B5   ci_c24n4   s_c255    ci_c25n4 FA
+Xadd_col255 s_c255   A19B6   ci_c24n5   s_c256    ci_c25n5 FA
+Xadd_col256 s_c256   A18B7   ci_c24n6   s_c257    ci_c25n6 FA
+Xadd_col257 s_c257   A17B8   ci_c24n7   s_c258    ci_c25n7 FA
+Xadd_col258 s_c258   A16B9   ci_c24n8   s_c259    ci_c25n8 FA
+Xadd_col259 s_c259   A15B10   ci_c24n9   s_c2510    ci_c25n9 FA
+Xadd_col2510 s_c2510   A14B11   ci_c24n10   s_c2511    ci_c25n10 FA
+Xadd_col2511 s_c2511   A13B12   ci_c24n11   s_c2512    ci_c25n11 FA
+Xadd_col2512 s_c2512   A12B13   ci_c24n12   s_c2513    ci_c25n12 FA
+Xadd_col2513 s_c2513   A11B14   ci_c24n13   s_c2514    ci_c25n13 FA
+Xadd_col2514 s_c2514   A10B15   ci_c24n14   s_c2515    ci_c25n14 FA
+Xadd_col2515 s_c2515   A9B16   ci_c24n15   s_c2516    ci_c25n15 FA
+Xadd_col2516 s_c2516   A8B17   ci_c24n16   s_c2517    ci_c25n16 FA
+Xadd_col2517 s_c2517   A7B18   ci_c24n17   s_c2518    ci_c25n17 FA
+Xadd_col2518 s_c2518   A6B19   ci_c24n18   s_c2519    ci_c25n18 FA
+Xadd_col2519 s_c2519   A5B20   ci_c24n19   s_c2520    ci_c25n19 FA
+Xadd_col2520 s_c2520   A4B21   ci_c24n20   s_c2521    ci_c25n20 FA
+Xadd_col2521 s_c2521   A3B22   ci_c24n21   s_c2522    ci_c25n21 FA
+Xadd_col2522 s_c2522   A2B23   ci_c24n22   s_c2523    ci_c25n22 FA
+Xadd_col2523 s_c2523   A1B24   ci_c24n23   s_c2524    ci_c25n23 FA
+Xadd_col2524 s_c2524   A0B25   0         alu25     ci_c25n24 FA
+
+
+// Column 26
+Xadd_col260 A26B0    A25B1   ci_c25n0   s_c261    ci_c26n0 FA
+Xadd_col261 s_c261   A24B2   ci_c25n1   s_c262    ci_c26n1 FA
+Xadd_col262 s_c262   A23B3   ci_c25n2   s_c263    ci_c26n2 FA
+Xadd_col263 s_c263   A22B4   ci_c25n3   s_c264    ci_c26n3 FA
+Xadd_col264 s_c264   A21B5   ci_c25n4   s_c265    ci_c26n4 FA
+Xadd_col265 s_c265   A20B6   ci_c25n5   s_c266    ci_c26n5 FA
+Xadd_col266 s_c266   A19B7   ci_c25n6   s_c267    ci_c26n6 FA
+Xadd_col267 s_c267   A18B8   ci_c25n7   s_c268    ci_c26n7 FA
+Xadd_col268 s_c268   A17B9   ci_c25n8   s_c269    ci_c26n8 FA
+Xadd_col269 s_c269   A16B10   ci_c25n9   s_c2610    ci_c26n9 FA
+Xadd_col2610 s_c2610   A15B11   ci_c25n10   s_c2611    ci_c26n10 FA
+Xadd_col2611 s_c2611   A14B12   ci_c25n11   s_c2612    ci_c26n11 FA
+Xadd_col2612 s_c2612   A13B13   ci_c25n12   s_c2613    ci_c26n12 FA
+Xadd_col2613 s_c2613   A12B14   ci_c25n13   s_c2614    ci_c26n13 FA
+Xadd_col2614 s_c2614   A11B15   ci_c25n14   s_c2615    ci_c26n14 FA
+Xadd_col2615 s_c2615   A10B16   ci_c25n15   s_c2616    ci_c26n15 FA
+Xadd_col2616 s_c2616   A9B17   ci_c25n16   s_c2617    ci_c26n16 FA
+Xadd_col2617 s_c2617   A8B18   ci_c25n17   s_c2618    ci_c26n17 FA
+Xadd_col2618 s_c2618   A7B19   ci_c25n18   s_c2619    ci_c26n18 FA
+Xadd_col2619 s_c2619   A6B20   ci_c25n19   s_c2620    ci_c26n19 FA
+Xadd_col2620 s_c2620   A5B21   ci_c25n20   s_c2621    ci_c26n20 FA
+Xadd_col2621 s_c2621   A4B22   ci_c25n21   s_c2622    ci_c26n21 FA
+Xadd_col2622 s_c2622   A3B23   ci_c25n22   s_c2623    ci_c26n22 FA
+Xadd_col2623 s_c2623   A2B24   ci_c25n23   s_c2624    ci_c26n23 FA
+Xadd_col2624 s_c2624   A1B25   ci_c25n24   s_c2625    ci_c26n24 FA
+Xadd_col2625 s_c2625   A0B26   0         alu26     ci_c26n25 FA
+
+
+// Column 27
+Xadd_col270 A27B0    A26B1   ci_c26n0   s_c271    ci_c27n0 FA
+Xadd_col271 s_c271   A25B2   ci_c26n1   s_c272    ci_c27n1 FA
+Xadd_col272 s_c272   A24B3   ci_c26n2   s_c273    ci_c27n2 FA
+Xadd_col273 s_c273   A23B4   ci_c26n3   s_c274    ci_c27n3 FA
+Xadd_col274 s_c274   A22B5   ci_c26n4   s_c275    ci_c27n4 FA
+Xadd_col275 s_c275   A21B6   ci_c26n5   s_c276    ci_c27n5 FA
+Xadd_col276 s_c276   A20B7   ci_c26n6   s_c277    ci_c27n6 FA
+Xadd_col277 s_c277   A19B8   ci_c26n7   s_c278    ci_c27n7 FA
+Xadd_col278 s_c278   A18B9   ci_c26n8   s_c279    ci_c27n8 FA
+Xadd_col279 s_c279   A17B10   ci_c26n9   s_c2710    ci_c27n9 FA
+Xadd_col2710 s_c2710   A16B11   ci_c26n10   s_c2711    ci_c27n10 FA
+Xadd_col2711 s_c2711   A15B12   ci_c26n11   s_c2712    ci_c27n11 FA
+Xadd_col2712 s_c2712   A14B13   ci_c26n12   s_c2713    ci_c27n12 FA
+Xadd_col2713 s_c2713   A13B14   ci_c26n13   s_c2714    ci_c27n13 FA
+Xadd_col2714 s_c2714   A12B15   ci_c26n14   s_c2715    ci_c27n14 FA
+Xadd_col2715 s_c2715   A11B16   ci_c26n15   s_c2716    ci_c27n15 FA
+Xadd_col2716 s_c2716   A10B17   ci_c26n16   s_c2717    ci_c27n16 FA
+Xadd_col2717 s_c2717   A9B18   ci_c26n17   s_c2718    ci_c27n17 FA
+Xadd_col2718 s_c2718   A8B19   ci_c26n18   s_c2719    ci_c27n18 FA
+Xadd_col2719 s_c2719   A7B20   ci_c26n19   s_c2720    ci_c27n19 FA
+Xadd_col2720 s_c2720   A6B21   ci_c26n20   s_c2721    ci_c27n20 FA
+Xadd_col2721 s_c2721   A5B22   ci_c26n21   s_c2722    ci_c27n21 FA
+Xadd_col2722 s_c2722   A4B23   ci_c26n22   s_c2723    ci_c27n22 FA
+Xadd_col2723 s_c2723   A3B24   ci_c26n23   s_c2724    ci_c27n23 FA
+Xadd_col2724 s_c2724   A2B25   ci_c26n24   s_c2725    ci_c27n24 FA
+Xadd_col2725 s_c2725   A1B26   ci_c26n25   s_c2726    ci_c27n25 FA
+Xadd_col2726 s_c2726   A0B27   0         alu27     ci_c27n26 FA
+
+
+// Column 28
+Xadd_col280 A28B0    A27B1   ci_c27n0   s_c281    ci_c28n0 FA
+Xadd_col281 s_c281   A26B2   ci_c27n1   s_c282    ci_c28n1 FA
+Xadd_col282 s_c282   A25B3   ci_c27n2   s_c283    ci_c28n2 FA
+Xadd_col283 s_c283   A24B4   ci_c27n3   s_c284    ci_c28n3 FA
+Xadd_col284 s_c284   A23B5   ci_c27n4   s_c285    ci_c28n4 FA
+Xadd_col285 s_c285   A22B6   ci_c27n5   s_c286    ci_c28n5 FA
+Xadd_col286 s_c286   A21B7   ci_c27n6   s_c287    ci_c28n6 FA
+Xadd_col287 s_c287   A20B8   ci_c27n7   s_c288    ci_c28n7 FA
+Xadd_col288 s_c288   A19B9   ci_c27n8   s_c289    ci_c28n8 FA
+Xadd_col289 s_c289   A18B10   ci_c27n9   s_c2810    ci_c28n9 FA
+Xadd_col2810 s_c2810   A17B11   ci_c27n10   s_c2811    ci_c28n10 FA
+Xadd_col2811 s_c2811   A16B12   ci_c27n11   s_c2812    ci_c28n11 FA
+Xadd_col2812 s_c2812   A15B13   ci_c27n12   s_c2813    ci_c28n12 FA
+Xadd_col2813 s_c2813   A14B14   ci_c27n13   s_c2814    ci_c28n13 FA
+Xadd_col2814 s_c2814   A13B15   ci_c27n14   s_c2815    ci_c28n14 FA
+Xadd_col2815 s_c2815   A12B16   ci_c27n15   s_c2816    ci_c28n15 FA
+Xadd_col2816 s_c2816   A11B17   ci_c27n16   s_c2817    ci_c28n16 FA
+Xadd_col2817 s_c2817   A10B18   ci_c27n17   s_c2818    ci_c28n17 FA
+Xadd_col2818 s_c2818   A9B19   ci_c27n18   s_c2819    ci_c28n18 FA
+Xadd_col2819 s_c2819   A8B20   ci_c27n19   s_c2820    ci_c28n19 FA
+Xadd_col2820 s_c2820   A7B21   ci_c27n20   s_c2821    ci_c28n20 FA
+Xadd_col2821 s_c2821   A6B22   ci_c27n21   s_c2822    ci_c28n21 FA
+Xadd_col2822 s_c2822   A5B23   ci_c27n22   s_c2823    ci_c28n22 FA
+Xadd_col2823 s_c2823   A4B24   ci_c27n23   s_c2824    ci_c28n23 FA
+Xadd_col2824 s_c2824   A3B25   ci_c27n24   s_c2825    ci_c28n24 FA
+Xadd_col2825 s_c2825   A2B26   ci_c27n25   s_c2826    ci_c28n25 FA
+Xadd_col2826 s_c2826   A1B27   ci_c27n26   s_c2827    ci_c28n26 FA
+Xadd_col2827 s_c2827   A0B28   0         alu28     ci_c28n27 FA
+
+
+// Column 29
+Xadd_col290 A29B0    A28B1   ci_c28n0   s_c291    ci_c29n0 FA
+Xadd_col291 s_c291   A27B2   ci_c28n1   s_c292    ci_c29n1 FA
+Xadd_col292 s_c292   A26B3   ci_c28n2   s_c293    ci_c29n2 FA
+Xadd_col293 s_c293   A25B4   ci_c28n3   s_c294    ci_c29n3 FA
+Xadd_col294 s_c294   A24B5   ci_c28n4   s_c295    ci_c29n4 FA
+Xadd_col295 s_c295   A23B6   ci_c28n5   s_c296    ci_c29n5 FA
+Xadd_col296 s_c296   A22B7   ci_c28n6   s_c297    ci_c29n6 FA
+Xadd_col297 s_c297   A21B8   ci_c28n7   s_c298    ci_c29n7 FA
+Xadd_col298 s_c298   A20B9   ci_c28n8   s_c299    ci_c29n8 FA
+Xadd_col299 s_c299   A19B10   ci_c28n9   s_c2910    ci_c29n9 FA
+Xadd_col2910 s_c2910   A18B11   ci_c28n10   s_c2911    ci_c29n10 FA
+Xadd_col2911 s_c2911   A17B12   ci_c28n11   s_c2912    ci_c29n11 FA
+Xadd_col2912 s_c2912   A16B13   ci_c28n12   s_c2913    ci_c29n12 FA
+Xadd_col2913 s_c2913   A15B14   ci_c28n13   s_c2914    ci_c29n13 FA
+Xadd_col2914 s_c2914   A14B15   ci_c28n14   s_c2915    ci_c29n14 FA
+Xadd_col2915 s_c2915   A13B16   ci_c28n15   s_c2916    ci_c29n15 FA
+Xadd_col2916 s_c2916   A12B17   ci_c28n16   s_c2917    ci_c29n16 FA
+Xadd_col2917 s_c2917   A11B18   ci_c28n17   s_c2918    ci_c29n17 FA
+Xadd_col2918 s_c2918   A10B19   ci_c28n18   s_c2919    ci_c29n18 FA
+Xadd_col2919 s_c2919   A9B20   ci_c28n19   s_c2920    ci_c29n19 FA
+Xadd_col2920 s_c2920   A8B21   ci_c28n20   s_c2921    ci_c29n20 FA
+Xadd_col2921 s_c2921   A7B22   ci_c28n21   s_c2922    ci_c29n21 FA
+Xadd_col2922 s_c2922   A6B23   ci_c28n22   s_c2923    ci_c29n22 FA
+Xadd_col2923 s_c2923   A5B24   ci_c28n23   s_c2924    ci_c29n23 FA
+Xadd_col2924 s_c2924   A4B25   ci_c28n24   s_c2925    ci_c29n24 FA
+Xadd_col2925 s_c2925   A3B26   ci_c28n25   s_c2926    ci_c29n25 FA
+Xadd_col2926 s_c2926   A2B27   ci_c28n26   s_c2927    ci_c29n26 FA
+Xadd_col2927 s_c2927   A1B28   ci_c28n27   s_c2928    ci_c29n27 FA
+Xadd_col2928 s_c2928   A0B29   0         alu29     ci_c29n28 FA
+
+
+// Column 30
+Xadd_col300 A30B0    A29B1   ci_c29n0   s_c301    ci_c30n0 FA
+Xadd_col301 s_c301   A28B2   ci_c29n1   s_c302    ci_c30n1 FA
+Xadd_col302 s_c302   A27B3   ci_c29n2   s_c303    ci_c30n2 FA
+Xadd_col303 s_c303   A26B4   ci_c29n3   s_c304    ci_c30n3 FA
+Xadd_col304 s_c304   A25B5   ci_c29n4   s_c305    ci_c30n4 FA
+Xadd_col305 s_c305   A24B6   ci_c29n5   s_c306    ci_c30n5 FA
+Xadd_col306 s_c306   A23B7   ci_c29n6   s_c307    ci_c30n6 FA
+Xadd_col307 s_c307   A22B8   ci_c29n7   s_c308    ci_c30n7 FA
+Xadd_col308 s_c308   A21B9   ci_c29n8   s_c309    ci_c30n8 FA
+Xadd_col309 s_c309   A20B10   ci_c29n9   s_c3010    ci_c30n9 FA
+Xadd_col3010 s_c3010   A19B11   ci_c29n10   s_c3011    ci_c30n10 FA
+Xadd_col3011 s_c3011   A18B12   ci_c29n11   s_c3012    ci_c30n11 FA
+Xadd_col3012 s_c3012   A17B13   ci_c29n12   s_c3013    ci_c30n12 FA
+Xadd_col3013 s_c3013   A16B14   ci_c29n13   s_c3014    ci_c30n13 FA
+Xadd_col3014 s_c3014   A15B15   ci_c29n14   s_c3015    ci_c30n14 FA
+Xadd_col3015 s_c3015   A14B16   ci_c29n15   s_c3016    ci_c30n15 FA
+Xadd_col3016 s_c3016   A13B17   ci_c29n16   s_c3017    ci_c30n16 FA
+Xadd_col3017 s_c3017   A12B18   ci_c29n17   s_c3018    ci_c30n17 FA
+Xadd_col3018 s_c3018   A11B19   ci_c29n18   s_c3019    ci_c30n18 FA
+Xadd_col3019 s_c3019   A10B20   ci_c29n19   s_c3020    ci_c30n19 FA
+Xadd_col3020 s_c3020   A9B21   ci_c29n20   s_c3021    ci_c30n20 FA
+Xadd_col3021 s_c3021   A8B22   ci_c29n21   s_c3022    ci_c30n21 FA
+Xadd_col3022 s_c3022   A7B23   ci_c29n22   s_c3023    ci_c30n22 FA
+Xadd_col3023 s_c3023   A6B24   ci_c29n23   s_c3024    ci_c30n23 FA
+Xadd_col3024 s_c3024   A5B25   ci_c29n24   s_c3025    ci_c30n24 FA
+Xadd_col3025 s_c3025   A4B26   ci_c29n25   s_c3026    ci_c30n25 FA
+Xadd_col3026 s_c3026   A3B27   ci_c29n26   s_c3027    ci_c30n26 FA
+Xadd_col3027 s_c3027   A2B28   ci_c29n27   s_c3028    ci_c30n27 FA
+Xadd_col3028 s_c3028   A1B29   ci_c29n28   s_c3029    ci_c30n28 FA
+Xadd_col3029 s_c3029   A0B30   0         alu30     ci_c30n29 FA
+
+
+// Column 31
+Xadd_col310 A31B0    A30B1   ci_c30n0   s_c311    ci_c31n0 FA
+Xadd_col311 s_c311   A29B2   ci_c30n1   s_c312    ci_c31n1 FA
+Xadd_col312 s_c312   A28B3   ci_c30n2   s_c313    ci_c31n2 FA
+Xadd_col313 s_c313   A27B4   ci_c30n3   s_c314    ci_c31n3 FA
+Xadd_col314 s_c314   A26B5   ci_c30n4   s_c315    ci_c31n4 FA
+Xadd_col315 s_c315   A25B6   ci_c30n5   s_c316    ci_c31n5 FA
+Xadd_col316 s_c316   A24B7   ci_c30n6   s_c317    ci_c31n6 FA
+Xadd_col317 s_c317   A23B8   ci_c30n7   s_c318    ci_c31n7 FA
+Xadd_col318 s_c318   A22B9   ci_c30n8   s_c319    ci_c31n8 FA
+Xadd_col319 s_c319   A21B10   ci_c30n9   s_c3110    ci_c31n9 FA
+Xadd_col3110 s_c3110   A20B11   ci_c30n10   s_c3111    ci_c31n10 FA
+Xadd_col3111 s_c3111   A19B12   ci_c30n11   s_c3112    ci_c31n11 FA
+Xadd_col3112 s_c3112   A18B13   ci_c30n12   s_c3113    ci_c31n12 FA
+Xadd_col3113 s_c3113   A17B14   ci_c30n13   s_c3114    ci_c31n13 FA
+Xadd_col3114 s_c3114   A16B15   ci_c30n14   s_c3115    ci_c31n14 FA
+Xadd_col3115 s_c3115   A15B16   ci_c30n15   s_c3116    ci_c31n15 FA
+Xadd_col3116 s_c3116   A14B17   ci_c30n16   s_c3117    ci_c31n16 FA
+Xadd_col3117 s_c3117   A13B18   ci_c30n17   s_c3118    ci_c31n17 FA
+Xadd_col3118 s_c3118   A12B19   ci_c30n18   s_c3119    ci_c31n18 FA
+Xadd_col3119 s_c3119   A11B20   ci_c30n19   s_c3120    ci_c31n19 FA
+Xadd_col3120 s_c3120   A10B21   ci_c30n20   s_c3121    ci_c31n20 FA
+Xadd_col3121 s_c3121   A9B22   ci_c30n21   s_c3122    ci_c31n21 FA
+Xadd_col3122 s_c3122   A8B23   ci_c30n22   s_c3123    ci_c31n22 FA
+Xadd_col3123 s_c3123   A7B24   ci_c30n23   s_c3124    ci_c31n23 FA
+Xadd_col3124 s_c3124   A6B25   ci_c30n24   s_c3125    ci_c31n24 FA
+Xadd_col3125 s_c3125   A5B26   ci_c30n25   s_c3126    ci_c31n25 FA
+Xadd_col3126 s_c3126   A4B27   ci_c30n26   s_c3127    ci_c31n26 FA
+Xadd_col3127 s_c3127   A3B28   ci_c30n27   s_c3128    ci_c31n27 FA
+Xadd_col3128 s_c3128   A2B29   ci_c30n28   s_c3129    ci_c31n28 FA
+Xadd_col3129 s_c3129   A1B30   ci_c30n29   s_c3130    ci_c31n29 FA
+Xadd_col3130 s_c3130   A0B31   0         alu31     ci_c31n30 FA
+.ends

@@ -1,0 +1,12 @@
+/*
+.include "/50002/nominal.jsim"
+.include "/50002/stdcell.jsim"
+.include "/50002/lab3compare.jsim"
+*/
+
+.subckt compare32 ALUFN[2:1] z v n cmp[31:0]
+Xgnd cmp[31:1] constant0
+Xd2 n v d2 xor2
+xd3 z d2 d3 or2
+Xmux ALUFN1 ALUFN2 0 z d2 d3 cmp0 mux4
+.ends

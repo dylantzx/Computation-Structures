@@ -1,0 +1,40 @@
+/*
+.include "/50002/nominal.jsim"
+.include "/50002/stdcell.jsim"
+.include "/50002/lab3adder.jsim"
+*/
+
+* 1-bit Full Adder
+.subckt FA a b ci s co
+Xxor1 a b p1 xor2
+Xxor2 p1 ci s xor2
+Xnand1 a ci p2 nand2
+Xnand2 a b p3 nand2
+Xnand3 b ci p4 nand2
+Xnand4 p2 p3 p4 co nand3
+.ends
+
+* 32-bits Full Adder Cin, A, B, S, z, v, n
+.subckt adder32 ALUFN[0] A[31:0] B[31:0] s[31:0] z v n
+
+Xxor ALUFN0#32 B[31:0] XB[31:0] xor2
+Xfirst A0 XB0 ALUFN0 s0 C0 FA
+Xrest A[31:1] XB[31:1] C[30:0] s[31:1] C[31:1] FA
+
+* Z
+Xeight_nor4 s[7:0] s[15:8] s[23:16] s[31:24] out[7:0] nor4
+Xtwo_nand4 out[1:0] out[3:2] out[5:4] out[7:6] next_out[1:0] nand4 
+Xnor2 next_out0 next_out1 z nor2
+
+* N
+.connect n s31 
+
+* V
+XinvA A31 inv_A31 inverter_2
+XinvB XB31 inv_XB31 inverter_2
+XinvS s31 inv_s31 inverter_2
+Xv1 A31 XB31 inv_s31 v1 and3
+Xv2 inv_A31 inv_XB31 s31 v2 and3
+Xfinalv v1 v2 v or2
+
+.ends
