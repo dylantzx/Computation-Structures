@@ -1,0 +1,104 @@
+.include "./50002/stdcell.jsim"
+.include "./50002/nominal.jsim"
+.include "/Users/dylantan/Desktop/Term 4/2D/2D/50002_JSIMcheckoff_file_timing/2dcheckoff_3ns.jsim"
+******************* Block X without sum *******************
+.subckt adder a b g p
+Xand a b g and2
+Xxor a b p xor2
+
+.ends
+
+******************* Block Y without Carry *******************
+.subckt block g0 p0 g1 p1 go po
+Xand p1 g0 g0p1 and2
+Xor g0p1 g1 go or2
+
+Xnand p0 p1 np0p1 nand2
+Xinverter np0p1 po inverter
+.ends
+
+******************* Carry for Block Y *******************
+.subckt carry p g ci co
+Xinv4 g gn inverter
+Xnand ci p cp nand2
+Xnand1 cp gn co nand2
+.ends
+
+******************* 16 bit Carry Look-Ahead Adder *******************
+.subckt adder16 a[15:0] b[15:0] c0 s[15:0] co
+XA a[15:0] b[15:0] g[15:0] p[15:0] adder
+
+*first layer of blocks that connect to the adders
+Xblock00 g0 p0 g1 p1 g00 p00 block
+Xblock01 g2 p2 g3 p3 g01 p01 block
+Xblock02 g4 p4 g5 p5 g02 p02 block
+Xblock03 g6 p6 g7 p7 g03 p03 block
+Xblock04 g8 p8 g9 p9 g04 p04 block
+Xblock05 g10 p10 g11 p11 g05 p05 block
+Xblock06 g12 p12 g13 p13 g06 p06 block
+Xblock07 g14 p14 g15 p15 g07 p07 block
+
+*second layer which connects to the first layer of blocks
+Xblock10 g00 p00 g01 p01 gout0 pout0 block
+Xblock11 g02 p02 g03 p03 gout1 pout1 block
+Xblock12 g04 p04 g05 p05 gout2 pout2 block
+Xblock13 g06 p06 g07 p07 gout3 pout3 block
+
+*third layer which connects to the second layer of blocks
+Xblock20 gout0 pout0 gout1 pout1 gfout0 pfout0 block
+Xblock21 gout2 pout2 gout3 pout3 gfout1 pfout1 block
+
+*first layer of carry that connects to the adders
+Xcarry00 p0 g0 c0 c1 carry
+Xcarry01 p2 g2 c2 c3 carry
+Xcarry02 p4 g4 c4 c5 carry
+Xcarry03 p6 g6 c6 c7 carry
+Xcarry04 p8 g8 c8 c9 carry
+Xcarry05 p10 g10 c10 c11 carry
+Xcarry06 p12 g12 c12 c13 carry
+Xcarry07 p14 g14 c14 c15 carry
+
+*second layer of carry that connects to the second layer of blocks
+Xcarry10 p00 g00 c0 c2 carry
+Xcarry11 p02 g02 c4 c6 carry
+Xcarry12 p04 g04 c8 c10 carry
+Xcarry13 p06 g06 c12 c14 carry
+
+*third layer of carry that connects to the third layer of blocks
+Xcarry20 pout0 gout0 c0 c4 carry
+Xcarry21 pout2 gout2 c8 c12 carry
+
+*fourth layer of carry
+Xcarry30 pfout0 gfout0 c0 c8 carry
+Xcarryfirst pfout1 gfout1 c8 co carry
+
+Xxor1 c[15:0] p[15:0] s[15:0] xor2
+.ends
+
+******************* Subckt for v *******************
+.subckt vComponent xa31 xb31 s31 v
+XinvertXa31 xa31 invXa31 inverter
+XinvertXb31 xb31 invXb31 inverter
+XinvertS31 s31 invS31 inverter
+XfirstAnd xa31 xb31 invS31 outputFirstAnd and3
+XSecAnd invXa31 invXb31 s31 outputSecAnd and3
+Xfinal outputFirstAnd outputSecAnd v or2
+.ends
+
+******************* 32 bit: 16 bit CLA with 16 bit CSA *******************
+
+.subckt adder32 ALUFN[0] A[31:0] B[31:0] S[31:0] z v n
+Xxor31 ALUFN[0]#32 B[31:0] xb[31:0] xor2
+
+Xadder16 A[15:0] xb[15:0] ALUFN[0] S[15:0] c16 adder16
+Xadder16a A[31:16] xb[31:16] 0 Sa[31:16] c32a adder16 //additions when carryin is 0
+Xadder16b A[31:16] xb[31:16] vdd Sb[31:16] c32b adder16 //additions when carryin is 1
+Xmux c16#16 Sa[31:16] Sb[31:16] S[31:16] mux2 //using mux to select carry, from the precomputed adder16a or adder16b depending on c16 value
+
+Xz1 s[7:0] s[15:8] s[23:16] s[31:24] o1[7:0] nor4
+Xz2 o1[1:0] o1[3:2] o1[4:5] o1[7:6] o2[1:0] nand4
+Xz3 o2[0] o2[1] z nor2
+
+XvComponent A[31] xb[31] s[31] v vComponent
+.connect n S31 
+.ends 
