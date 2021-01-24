@@ -1,0 +1,92 @@
+module au_top (
+    input clk,              // 100MHz clock
+    input rst_n,            // reset button (active low)
+    output led [8],         // 8 user controllable LEDs
+    input usb_rx,           // USB->Serial input
+    output usb_tx,          // USB->Serial output
+    output io_led [3][8],   // LEDs on IO Shield
+    output io_seg [8],      // 7-segment LEDs on IO Shield
+    output io_sel [4],      // Digit select on IO Shield
+    input io_button [5],    // 5 buttons on IO Shield
+    input io_dip [3][8]     // DIP switches on IO Shield
+  ) {
+  
+  sig rst;                  // reset signal
+  /********* PART 1 *********/
+//  full_adder fulladder;
+//  eight_bit_adder eightbitadder;
+//  full_adder_ROM fulladderROM;
+//  eight_bit_shiftleft eightbitshiftleft;
+  /********* END *********/
+  
+  /********* PART 2 *********/
+  counter slowclock(#SIZE(1), #DIV(26), .clk(clk), .rst(rst)); // Using frequency divider to slower clock rate
+//  seq_plus_two seqplustwo(.clk(slowclock.value), .rst(rst)); // has to use slowclock or it'll be too fast to see anything
+//  seq_plus_vary seqplusvary(.clk(slowclock.value), .rst(rst));
+  /********* END *********/
+  
+  /********* PART 3 *********/
+//  seq_plus_two_withReset seqplustwowithreset(.clk(clk),.rst(io_button[0]));   
+  seq_plus_twoSlow seqplustwoslow(.clk(clk), .rst(io_button[1]));
+  /********* END *********/
+  
+  .clk(clk) {
+    // The reset conditioner is used to synchronize the reset signal to the FPGA
+    // clock. This ensures the entire FPGA comes out of reset at the same time.
+    reset_conditioner reset_cond;
+  }
+  
+  always {
+    reset_cond.in = ~rst_n; // input raw inverted reset signal
+    rst = reset_cond.out;   // conditioned reset
+    
+    usb_tx = usb_rx;        // loop serial port
+    
+    led = 8h00;             // turn LEDs off
+    
+    io_led = 3x{{8h00}};    // turn LEDs off
+    io_seg = 8hff;          // turn segments off
+    io_sel = 4hf;           // select no digits
+    
+    /********* PART 1 *********/
+    /* part a */
+//    fulladder.x = io_dip[0][0];
+//    fulladder.y = io_dip[0][1];
+//    fulladder.cin = io_dip[0][2];
+    
+//    io_led[2][1] = fulladder.s;
+//    io_led[2][0] = fulladder.cout ;
+    
+    /* part b */
+//    eightbitadder.x = io_dip[0];
+//    eightbitadder.y = io_dip[1];
+//    eightbitadder.cin = io_dip[2][0];
+//    io_led[1] = eightbitadder.s;
+//    io_led[2][0] = eightbitadder.cout;
+    
+    /* part c */
+//    fulladderROM.address = io_dip[0][2:0];
+//    io_led[1][1:0] = fulladderROM.value;
+    
+    /* part d */
+//    eightbitshiftleft.a = io_dip[0];
+//    eightbitshiftleft.b = io_dip[1][2:0];
+//    io_led[0] = eightbitshiftleft.s;
+    /********* END *********/
+    
+    /********* PART 2 *********/
+//    io_led[0] = seqplustwo.out;
+//    io_led[2] = seqplusvary.out;
+    /********* END *********/
+    
+    /********* PART 3 *********/
+//    io_led[2][0] = io_button[0];
+//    io_led[1] = seqplustwowithreset.out;
+    io_led[2][1] = io_button[1];
+    io_led[1] = seqplustwoslow.out;
+    
+    //io_led[2] = seqplusvary.out;
+    /********* END *********/
+    
+  }
+}

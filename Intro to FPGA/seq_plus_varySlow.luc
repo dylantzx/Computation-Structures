@@ -1,0 +1,12 @@
+module seq_plus_varySlow (
+    input clk,  // clock
+    input rst,  // reset
+    output out[8]
+  ) 
+{
+const SLOWCLOCK_SIZE = 27;
+counter slow_clock(#  
+  always {
+    out = 0;
+  }
+}
