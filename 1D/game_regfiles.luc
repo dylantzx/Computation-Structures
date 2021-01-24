@@ -1,0 +1,149 @@
+module game_regfiles (
+    input clk,  // clock
+    input rst,  // reset
+    input we[1],
+    input read_address_a[4], //address port a
+    input read_address_b[4], //address port b
+    input read_address_o[4], //address port o
+    input write_address[4],
+    input data[16],
+    output out_a[16], // port a output
+    output out_b[16], // port b output
+    output out_o[6], // port o output
+    
+    output debug_out_write_address[4],
+    output debug_out_ra[4],
+    output debug_out_rb[4],
+    output debug_out_register[16],
+    
+    output operand1_out[7],
+    output operand2_out[7],
+    output operation_out[2],
+    output countdown_timer_out[6],
+    output score_out[7],
+    output answer_out[13],
+    output moduloAns_out[4],
+    output scoreTimter_out[3],
+    output ledvalue_out[10]
+    
+  ) {
+  
+  .clk(clk){
+    .rst(rst){
+      dff operand1[7];
+      dff operand2[7];
+      dff operation_level[2];
+      dff expectedAns[13];
+      dff moduloAns[4];
+      dff score[7];
+      dff countdown_timer[6];
+      dff direction[1];
+      dff ledvalue[10];
+      dff score_timer[3];
+      dff temp1[7];
+      dff temp2[7];
+      dff temp3[7];
+      dff temp4[7];
+      dff temp5[7];
+      dff temp6[7];
+      
+    }
+  }
+  //sig tempDebug[6];
+
+  always {
+    out_o = operation_level.q;
+    operand1_out = operand1.q;
+    operand2_out = operand2.q;
+    operation_out = operation_level.q;
+    
+    countdown_timer_out = countdown_timer.q;
+    
+    
+    score_out = score.q;
+    answer_out = expectedAns.q;
+    moduloAns_out = moduloAns.q;
+    scoreTimter_out = score_timer.q;
+    ledvalue_out =ledvalue.q;
+    
+    debug_out_write_address = write_address;
+    debug_out_ra = read_address_a;
+    debug_out_rb = read_address_b;
+    
+    debug_out_register = countdown_timer.q;
+    //debug_out_register = tempDebug;
+    //if write enabled look at write address
+    if (we) {
+      case(write_address){
+        b0000 : operand1.d = data;
+        b0001 : operand2.d = data;
+        b0010 : operation_level.d = data;
+        b0011 : expectedAns.d = data;
+        b0100 : moduloAns.d = data;
+        b0101 : score.d = data;
+        b0110 : countdown_timer.d = data;
+        b0111 : direction.d = data;
+        b1000 : ledvalue.d = data;
+        b1001 : score_timer.d = data;
+        b1010 : temp1.d = data;
+        b1011 : temp2.d = data;
+        b1100 : temp3.d = data; 
+        b1101 : temp4.d = data;
+        b1110 : temp5.d = data;
+        b1111 : temp6.d = data;
+        
+      }
+    }
+    
+    //read port a 
+    case(read_address_a) {
+    
+        h0 : out_a=operand1.q;
+        h1 : out_a=operand2.q;
+        h2 : out_a=operation_level.q;
+        h3 : out_a=expectedAns.q;
+        h4 : out_a=moduloAns.q;
+        h5 : out_a=score.q;
+        h6 : out_a=countdown_timer.q;
+        h7 : out_a=direction.q;
+        h8 : out_a=ledvalue.q;
+        h9 : out_a=score_timer.q;
+        ha : out_a=temp1.q;
+        hb : out_a=temp2.q;
+        hc : out_a=temp3.q; 
+        hd : out_a=temp4.q;
+        he : out_a=temp5.q;
+        hf : out_a=temp6.q;
+        default : out_a = 0;
+    }
+    
+    //
+    case(read_address_b){
+        h0 : out_b=operand1.q;
+        h1 : out_b=operand2.q;
+        h2 : out_b=operation_level.q;
+        h3 : out_b=expectedAns.q;
+        h4 : out_b=moduloAns.q;
+        h5 : out_b=score.q;
+        h6 : out_b=countdown_timer.q;
+        h7 : out_b=direction.q;
+        h8 : out_b=ledvalue.q;
+        h9 : out_b=score_timer.q;
+        ha : out_b=temp1.q;
+        hb : out_b=temp2.q;
+        hc : out_b=temp3.q; 
+        hd : out_b=temp4.q;
+        he : out_b=temp5.q;
+        hf : out_b=temp6.q;
+        default : out_b = 0;
+    }
+    
+
+    
+    
+    
+    
+  }
+  
+  
+}

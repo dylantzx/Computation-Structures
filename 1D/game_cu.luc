@@ -1,0 +1,776 @@
+module game_cu (
+    input clk,  // clock
+    input rst,  // reset
+    
+    input button1[1], //button 1
+    input button2[1],
+    input regfile_data_in[16], // direct reading of regfile data
+    
+    input st_easy[1],
+    input st_med[1],
+    input st_hard[1],
+    input st[1],
+    input rng_rdy[1],
+    input rng_rdy2[1],
+    
+    output decimal_counter_decrease,
+    output decimal_counter_rst,
+    output alufn[6],
+    output asel[3],
+    output bsel[3],
+    output to_alufn[2],
+    output alufn_sel[2],
+    output regfile_write_address[6],
+    output regfile_read_address_a[6],
+    output regfile_read_address_b[6],
+    output regfile_read_address_o[6],
+    output we[1],
+    output wdsel[2],
+    
+    output debug_state[6]
+
+  ) {
+  
+  
+  .clk(clk){
+  
+    fsm game_fsm = {
+      GAME_NOT_STARTED,
+      GAME_SET_LED_VALUE,
+      GAME_SET_LEVEL_0,
+      GAME_SET_TIMER_60,
+      GAME_WAIT_FOR_OPERAND1,
+      GAME_SET_OPERAND1,
+      GAME_WAIT_FOR_OPERAND2,
+      GAME_SET_OPERAND2,
+      GAME_COMPUTE_EXPECTED_ANS,
+      GAME_COMPUTE_MODULO_ANS,
+      //MAIN
+      GAME_MAIN,
+      //TIMER
+      GAME_TIMER_DECREASE,
+      GAME_TIMER_CHECK,
+      GAME_TIMER_BRANCH,
+      //DIFFICULTY CHECK
+      GAME_DIFFICULTY_CHECK_EASY,
+      GAME_DIFFICULTY_CHECK_MEDIUM,
+      GAME_DIFFICULTY_CHECK_HARD,
+      GAME_DIFFICULTY_CHECK_EASY_BRANCH,
+      GAME_DIFFICULTY_CHECK_MEDIUM_BRANCH,
+      GAME_DIFFICULTY_CHECK_HARD_BRANCH,
+      //DIRECTION MIGHT NEED TO CHANGE
+      GAME_DIRECTION_CHECK,
+      GAME_DIRECTION_BRANCH,
+      GAME_DIRECTION_CHANGE_RIGHT,
+      GAME_DIRECTION_CHANGE_LEFT,
+      GAME_DIRECTION_SHIFT_LEFT,
+      GAME_DIRECTION_SHIFT_RIGHT,
+      GAME_DIRECTION_CHECK_0X1,
+      GAME_DIRECTION_CHECK_0X1_BRANCH,
+      GAME_DIRECTION_CHECK_0X200,
+      GAME_DIRECTION_CHECK_0X200_BRANCH,
+      //ANSWER CHECKING 
+      GAME_ANSWER_CHECK,
+      GAME_ANSWER_CHECK_BRANCH,
+      GAME_ANSWER_INCREASE_SCORE,
+      GAME_ANSWER_DECREASE_SCORE,
+      GAME_ANSWER_CHECK_MORE_99,
+      GAME_ANSWER_CHECK_MORE_99_BRANCH,
+      GAME_ANSWER_SHOW_HUAT,
+      GAME_ANSWER_CHECK_SCORE_30,
+      GAME_ANSWER_CHECK_SCORE_30_BRANCH,
+      GAME_ANSWER_CHANGE_HARD_DIFF,
+      GAME_ANSWER_CHECK_SCORE_20,
+      GAME_ANSWER_CHECK_SCORE_20_BRANCH,
+      GAME_ANSWER_CHANGE_MED_DIFF,
+      GAME_ANSWER_CHANGE_EASY_DIFF,
+      //
+      GAME_OVER,
+      //SET TIMER FOR GAME OVER
+      GAME_OVER_TIMER_SET,
+      GAME_OVER_TIMER_DECREASE,
+      GAME_OVER_TIMER_CHECK,
+      
+      DEBUGGING
+
+    };
+  }
+
+  always {
+    
+    //standard settings unless overwritten
+    alufn = 0;
+    to_alufn = 0;
+    asel = 0; 
+    bsel = 0;
+    regfile_write_address = hc; //dun use this register
+    regfile_read_address_a = 0;
+    regfile_read_address_b = 0;
+    regfile_read_address_o =0;
+    we=0;
+    wdsel=0;
+    alufn_sel = 0;
+    debug_state = 0;
+
+    decimal_counter_decrease=0;
+    decimal_counter_rst=0;
+    
+    
+    if(rst){
+      game_fsm.d = game_fsm.GAME_NOT_STARTED;
+    }
+    else {
+    
+      case(game_fsm.q){
+          game_fsm.GAME_NOT_STARTED:
+          alufn_sel=b0;
+          //alufn=0;
+          //asel=0;
+          //bsel=0;
+          we=b0;
+          //wdsel=0;
+          debug_state = 6b000001;
+          //PRESS START BTN 
+          if(button1==1){
+            game_fsm.d=game_fsm.GAME_SET_LEVEL_0;
+          }
+          
+          game_fsm.GAME_SET_LEVEL_0:
+          alufn_sel=0;
+          alufn=6b000000; //add
+          asel=b01; //0
+          bsel=b000; // read from port b
+          we=b1; //write enable
+          regfile_read_address_b=h2; // read from port b 
+          regfile_write_address=h2; // level reg
+
+          wdsel=b00; //output from alu
+          
+          debug_state = 6b000010;
+          game_fsm.d=game_fsm.GAME_SET_TIMER_60;
+          
+/****************************************************************************************************/          
+          game_fsm.GAME_SET_TIMER_60:
+          alufn=6b000000; //add
+          we=b1; // we  
+          regfile_write_address = h6; // write to countdown timer
+          wdsel = b10; //takes the const 60
+          
+          debug_state = 6b000011;
+          
+          game_fsm.d=game_fsm.GAME_SET_LED_VALUE;
+          
+          game_fsm.GAME_SET_LED_VALUE:
+        
+          regfile_write_address = h8;
+          alufn_sel=0;
+          alufn = 6b000000;
+          asel = b10;
+          bsel = b000;
+          we = b1;
+          wdsel = b00;
+          
+          game_fsm.d = game_fsm.GAME_WAIT_FOR_OPERAND1; 
+
+/****************************************************************************************************/           
+          
+          game_fsm.GAME_WAIT_FOR_OPERAND1:
+          //alufn=0;
+          alufn_sel=0;
+          asel=0;
+          bsel=0;
+          we=b0;
+          wdsel=b00;
+          
+          debug_state = 6b000100;
+          if(rng_rdy){
+            game_fsm.d=game_fsm.GAME_SET_OPERAND1;
+          }
+          
+          
+          game_fsm.GAME_SET_OPERAND1:
+          alufn_sel=0;
+          //alufn=0;
+          asel=0;
+          bsel=0;
+          we=b1;
+          regfile_write_address=1h0;
+          wdsel=2b01; //rng
+          
+          debug_state = 6b000101;
+          
+          game_fsm.d=game_fsm.GAME_WAIT_FOR_OPERAND2;
+          
+          game_fsm.GAME_WAIT_FOR_OPERAND2:
+          alufn_sel=0;
+          //alufn=0;
+          asel=0;
+          bsel=0;
+          we=b0;
+          wdsel=b00;
+          debug_state = 6b000110;
+          
+          if(rng_rdy2){
+              game_fsm.d = game_fsm.GAME_SET_OPERAND2;
+          }
+           
+          
+          //set operand2
+          game_fsm.GAME_SET_OPERAND2:
+          alufn_sel=0;
+          we=b1;
+          regfile_write_address=1h1;
+          wdsel=b11;
+          debug_state = 6b000111;
+          game_fsm.d = game_fsm.GAME_COMPUTE_EXPECTED_ANS;
+          
+          
+          game_fsm.GAME_COMPUTE_EXPECTED_ANS:
+          alufn_sel=1;
+          //to_alufn = b11;
+          asel=b00;
+          bsel=b000;
+          we=b1;
+          wdsel=b00;
+          regfile_read_address_a = h0; // operand 1
+          regfile_read_address_b = h1; // operand 2
+          //regfile_read_address_o = h2; // operation
+          regfile_write_address = h3; // write to answer register
+          debug_state = 6b001000;
+          
+          game_fsm.d=game_fsm.GAME_COMPUTE_MODULO_ANS;
+          
+          game_fsm.GAME_COMPUTE_MODULO_ANS:
+          alufn_sel=0;
+          alufn=6b000011; // modulo
+          asel=b00;
+          bsel=001; //const 10
+          we=b1;
+          regfile_read_address_a=h3; // read answer register
+          regfile_write_address=h4; // write to modulo register
+          wdsel=b00;
+          
+          debug_state = 6b001001;
+          
+          game_fsm.d= game_fsm.GAME_MAIN;
+        
+          
+   /*####################################################################################################*/       
+          game_fsm.GAME_MAIN:
+        
+          debug_state = 6b001010;
+        
+          
+          //ST EASY 
+          
+          if(st_easy ==1 ) {
+          
+            game_fsm.d = game_fsm.GAME_DIFFICULTY_CHECK_EASY;
+          }
+          
+              
+           else if (st_med==1) {
+          
+            game_fsm.d= game_fsm.GAME_DIFFICULTY_CHECK_MEDIUM;
+
+            
+          } else if (st_hard==1){
+          
+            game_fsm.d=game_fsm.GAME_DIFFICULTY_CHECK_HARD;
+
+          }
+          
+          if (rst == 1){
+          game_fsm.d = game_fsm.GAME_NOT_STARTED;
+          }
+          
+          //if(st == 1 ) {
+           //game_fsm.d = game_fsm.GAME_TIMER_DECREASE;
+          //}
+          
+          
+          //if submit button is pressed
+          if(button1 ==1 ) {
+          //GAME_ANSWER_CHECK
+          game_fsm.d = game_fsm.GAME_ANSWER_INCREASE_SCORE;
+          }
+        
+/*****************************************************************************************************/          
+          //game answer check state
+        game_fsm.GAME_ANSWER_CHECK:
+          alufn_sel=0;
+          alufn = 6b110101; // cmpeq
+          asel = b00;
+          bsel = b000;
+          we=b1;
+          regfile_read_address_a= h4; //
+          regfile_read_address_b= h8;
+          regfile_write_address= hf;
+          wdsel=b00;
+          
+          debug_state = 6b001010;
+          
+          game_fsm.d = game_fsm.GAME_ANSWER_CHECK_BRANCH;
+          
+        game_fsm.GAME_ANSWER_CHECK_BRANCH:
+          
+          debug_state = 6b101010;
+          regfile_read_address_b= hf;
+          if(regfile_data_in == 0 ) {
+           game_fsm.d = game_fsm.GAME_ANSWER_INCREASE_SCORE; 
+          } else {
+           game_fsm.d = game_fsm.GAME_ANSWER_DECREASE_SCORE;
+          }
+        
+          
+           
+                   
+        game_fsm.GAME_ANSWER_DECREASE_SCORE:
+        
+          alufn_sel=0;
+          alufn = 6b000001; // sub
+          asel = b10;
+          bsel = b000;
+          we = b1;
+          regfile_read_address_b = h5;
+          regfile_write_address = h5;
+          wdsel=b00;
+          
+          debug_state = 6b001011;
+          
+          //game_fsm.d = game_fsm.GAME_ANSWER_CHECK_MORE_99;
+          
+          
+        game_fsm.GAME_ANSWER_INCREASE_SCORE:
+        
+          alufn_sel=0;
+          alufn = 6b000000;//add
+          asel=b10;
+          bsel = b000;
+          we=b1;
+          regfile_read_address_b = h5;
+          regfile_write_address = h5;
+          wdsel=b00;
+          
+          debug_state = 6b001100;
+          
+          game_fsm.d = game_fsm.GAME_WAIT_FOR_OPERAND1;
+          
+          
+          
+        game_fsm.GAME_ANSWER_CHECK_MORE_99:
+        
+          alufn_sel=0;
+          alufn = 6b111101; //cmplte
+          asel = b00;
+          bsel = b110;
+          we = b1;
+          regfile_read_address_a = h5;
+          regfile_write_address = hf;
+          wdsel=b00;
+          
+          debug_state = 6b001101;
+          
+          game_fsm.d = game_fsm.GAME_ANSWER_CHECK_MORE_99_BRANCH;
+          
+          
+        game_fsm.GAME_ANSWER_CHECK_MORE_99_BRANCH:
+        
+          regfile_read_address_b = hf;
+          if(regfile_data_in == 0) {
+            game_fsm.d = game_fsm.GAME_ANSWER_SHOW_HUAT;
+          } else {
+            game_fsm.d = game_fsm.GAME_ANSWER_CHECK_SCORE_20;
+          }
+          
+          
+          
+        game_fsm.GAME_ANSWER_SHOW_HUAT:
+        
+          alufn_sel=0;
+          we=b0;
+          
+          debug_state = 6b001110;
+          
+          game_fsm.d = game_fsm.GAME_MAIN;
+          
+          
+        game_fsm.GAME_ANSWER_CHECK_SCORE_20:
+        
+          alufn_sel=0;
+          alufn = 6b111101; //cmplte 
+          asel = b00;
+          bsel = b011;
+          we = b1;
+          regfile_read_address_a = h5;
+          regfile_write_address = hf;
+          wdsel = b00;
+          
+          debug_state = 6b001111;
+          
+          game_fsm.d = game_fsm.GAME_ANSWER_CHECK_SCORE_20_BRANCH;
+          
+          
+        game_fsm.GAME_ANSWER_CHECK_SCORE_20_BRANCH:
+        
+          regfile_read_address_b = hf;
+          if(regfile_data_in == 0) {
+            game_fsm.d = game_fsm.GAME_ANSWER_CHANGE_EASY_DIFF;
+          } else {
+            game_fsm.d = game_fsm.GAME_ANSWER_CHECK_SCORE_30;
+          }
+          
+          
+          
+        game_fsm.GAME_ANSWER_CHECK_SCORE_30:
+        
+          alufn_sel=0;
+          alufn = 6b11111; //cmplte 
+          asel = b00;
+          bsel = b010;
+          we = b1;
+          regfile_read_address_a = h5;
+          regfile_write_address = hf;
+          wdsel = b00;
+          debug_state = 6b010000;
+          
+          game_fsm.d = game_fsm.GAME_ANSWER_CHECK_SCORE_30_BRANCH;
+          
+          
+        game_fsm.GAME_ANSWER_CHECK_SCORE_30_BRANCH:
+        
+           regfile_read_address_b = hf;
+          if(regfile_data_in == 0) {
+            game_fsm.d = game_fsm.GAME_ANSWER_CHANGE_MED_DIFF;
+          } else {
+            game_fsm.d = game_fsm.GAME_ANSWER_CHANGE_HARD_DIFF;
+          }
+          
+          
+        game_fsm.GAME_ANSWER_CHANGE_HARD_DIFF:
+          alufn_sel=0;
+          alufn=6b000000;//add
+          asel = b10;
+          bsel = b000;
+          we = b1;
+          regfile_read_address_b = h2;
+          regfile_write_address = h2;
+          wdsel=b00;
+          
+          debug_state = 6b010001;
+          
+          game_fsm.d= game_fsm.GAME_WAIT_FOR_OPERAND1;
+          
+         game_fsm.GAME_ANSWER_CHANGE_MED_DIFF:
+          alufn_sel=0;
+          alufn=6b000000;//add
+          asel = b10;
+          bsel = b000;
+          we = b1;
+          regfile_read_address_b = h2;
+          regfile_write_address = h2;
+          wdsel=b00;
+          debug_state = 6b010010;
+          game_fsm.d= game_fsm.GAME_WAIT_FOR_OPERAND1;
+          
+          
+         game_fsm.GAME_ANSWER_CHANGE_EASY_DIFF:
+          alufn_sel=0;
+          alufn=6b000000;//add
+          asel = b10;
+          bsel = b000;
+          we = b1;
+          regfile_read_address_b = h2;
+          regfile_write_address = h2;
+          wdsel=b00;
+          debug_state = 6b010011;
+          
+          game_fsm.d= game_fsm.GAME_WAIT_FOR_OPERAND1;
+          
+/************************************************************************************************/          
+        game_fsm.GAME_TIMER_DECREASE:
+        
+          alufn_sel=0;
+          alufn=6b000001;//sub
+          asel = b00; //reg countdown
+          bsel = b111; // const 1
+          we=b1;
+          regfile_read_address_a = h6;
+          regfile_write_address = h6;
+          wdsel=b00;
+          //decimal_counter_decrease = -1;
+          
+          debug_state = 6b010100;
+          
+          game_fsm.d=game_fsm.GAME_TIMER_CHECK;
+          
+          
+        game_fsm.GAME_TIMER_CHECK:
+        
+          alufn_sel=0;
+          alufn= 6b110101;//cmpeq
+          asel = b01; // 0
+          bsel = b000;
+          we=b1;
+          regfile_read_address_b = h6;
+          regfile_write_address = hf; //writes the boolean value of cmpeq
+          wdsel=b00;
+          debug_state = 6b010101;
+          
+           game_fsm.d = game_fsm.GAME_TIMER_BRANCH;
+          //game_fsm.d = game_fsm.GAME_MAIN;
+ /************************************************************************************************/             
+        game_fsm.GAME_TIMER_BRANCH:
+          regfile_read_address_b = hf; 
+        if (regfile_data_in == 0){
+            game_fsm.d = game_fsm.GAME_OVER;
+          } else {
+            game_fsm.d = game_fsm.GAME_MAIN;
+          }
+          // temp value that contains boolean
+          //whether it was true or false
+          debug_state = 6b010110;
+          
+
+ /************************************************************************************************/             
+          
+
+         
+          
+          /*
+          if(regfile_data_in == 0 ){
+            game_fsm.d = game_fsm.GAME_OVER;
+          } else {
+            game_fsm.d = game_fsm.GAME_MAIN;
+          }
+        */
+/******************************************************************************************************/          
+        game_fsm.GAME_OVER:
+          
+          alufn_sel = 0;
+          we =b0;
+          
+          debug_state=6b010111;
+          
+          
+          
+        game_fsm.GAME_DIFFICULTY_CHECK_EASY:
+        
+            alufn_sel=0; //alufn
+            alufn = 6b110101;//cmpeq
+            asel = b01; // 0
+            bsel=b000; //port b
+            we =b1;
+            regfile_read_address_b = h2; // operation/level
+            regfile_write_address = hf; // temp reg
+            wdsel = b00; // alu
+            debug_state = 6b011000;
+          
+          game_fsm.d=game_fsm.GAME_DIFFICULTY_CHECK_EASY_BRANCH;
+          
+          
+        game_fsm.GAME_DIFFICULTY_CHECK_MEDIUM:
+        
+            alufn_sel=0;
+            alufn = 6b110101;//cmpeq
+            asel = b10;
+            bsel=b000;
+            we =b1;
+            regfile_read_address_b = h2;
+            regfile_write_address = hf;
+            wdsel = b00;
+            debug_state = 6b011001;
+          
+          game_fsm.d = game_fsm.GAME_DIFFICULTY_CHECK_MEDIUM_BRANCH;
+          
+          
+          
+        game_fsm.GAME_DIFFICULTY_CHECK_HARD:
+        
+            alufn_sel=0;
+            alufn = 6b110101;//cmpeq 
+            asel = b11;
+            bsel=b000;
+            we =b1;
+            regfile_read_address_b = h2;
+            regfile_write_address = hf;
+            wdsel = b00;
+          
+            debug_state = 6b011010;
+            
+          game_fsm.d =game_fsm.GAME_DIFFICULTY_CHECK_HARD_BRANCH;
+          
+          
+        game_fsm.GAME_DIFFICULTY_CHECK_EASY_BRANCH:
+        
+          regfile_read_address_b = hf;
+          if(regfile_data_in ==0){
+          game_fsm.d =game_fsm.GAME_DIRECTION_CHECK;
+          } else {
+          game_fsm.d = game_fsm.GAME_MAIN;
+          }
+          
+          debug_state = 6b011011;
+          
+        game_fsm.GAME_DIFFICULTY_CHECK_MEDIUM_BRANCH:
+        
+          regfile_read_address_b = hf;
+          
+          debug_state = 6b011100;
+          
+          if(regfile_data_in ==0){
+          game_fsm.d =game_fsm.GAME_DIRECTION_CHECK;
+          } else {
+          game_fsm.d = game_fsm.GAME_MAIN;
+          }
+          
+        game_fsm.GAME_DIFFICULTY_CHECK_HARD_BRANCH:
+        
+          debug_state = 6b011101;
+        
+          regfile_read_address_b = hf;
+          if(regfile_data_in ==0){
+          game_fsm.d =game_fsm.GAME_DIRECTION_CHECK;
+          } else {
+          game_fsm.d = game_fsm.GAME_MAIN;
+          }          
+          
+          
+          
+        game_fsm.GAME_DIRECTION_CHECK:
+        
+          alufn_sel=0;
+          alufn = 6b110101;//cmpeq
+          asel = b01;
+          bsel =b000;
+          we =b1;
+          regfile_read_address_b= h7;
+          regfile_write_address = hf;
+          wdsel=b00;
+          
+          debug_state = 6b011110;
+          
+          game_fsm.d = game_fsm.GAME_DIRECTION_BRANCH;
+          
+          
+          
+        game_fsm.GAME_DIRECTION_BRANCH:
+          debug_state = 6b011111;
+          regfile_read_address_b = hf;
+          if(regfile_data_in == 0) {
+            game_fsm.d = game_fsm.GAME_DIRECTION_SHIFT_LEFT;
+          } else {
+            game_fsm.d = game_fsm.GAME_DIRECTION_SHIFT_RIGHT;
+          }
+
+           
+          
+        game_fsm.GAME_DIRECTION_SHIFT_LEFT:
+          debug_state = 6b100000;
+          alufn_sel=0;
+          alufn = 6b100000; // shl
+          asel = b00;
+          bsel = b111; // const 1
+          we = b1;
+          regfile_read_address_a = h8; //led value reg
+          regfile_write_address = h8;
+          wdsel = b00;
+          
+          game_fsm.d = game_fsm.GAME_DIRECTION_CHECK_0X200;
+          
+          
+          
+          
+        game_fsm.GAME_DIRECTION_SHIFT_RIGHT:
+          debug_state = 6b100001;
+          alufn_sel=0;
+          alufn = 6b100001; //shr
+          asel = b00;
+          bsel =b111; //const 1
+          we = b1;
+          regfile_read_address_a = h8; //led value reg 
+          regfile_write_address = h8;
+          wdsel = b00;
+          
+          game_fsm.d = game_fsm.GAME_DIRECTION_CHECK_0X1;
+          
+         
+          
+        game_fsm.GAME_DIRECTION_CHECK_0X200:
+          debug_state = 6b100010;
+          alufn_sel=0;
+          alufn = 6b110101; //cmpeq
+          asel = b00;
+          bsel =b100;
+          we = b1;
+          regfile_read_address_a = h8; //led value
+          regfile_write_address = hf; //temp6 reg
+          wdsel=b00;
+          
+          game_fsm.d = game_fsm.GAME_DIRECTION_CHECK_0X200_BRANCH;
+          
+          
+        game_fsm.GAME_DIRECTION_CHECK_0X200_BRANCH:
+          debug_state = 6b100011;
+          regfile_read_address_b = hf;
+          if( regfile_data_in == 0 ){
+            game_fsm.d = game_fsm.GAME_DIRECTION_CHANGE_RIGHT;
+          } else {
+      
+            game_fsm.d = game_fsm.GAME_MAIN;
+          }
+           
+                    
+        game_fsm.GAME_DIRECTION_CHECK_0X1:
+          debug_state = 6b100100;
+          alufn_sel=0;
+          alufn = 6b110101; //cmpeq
+          asel = b10; // const 1
+          bsel = b000; 
+          we =b1;
+          regfile_read_address_b = h8; // led value
+          regfile_write_address= hf;
+          wdsel = b00;
+          
+          game_fsm.d = game_fsm.GAME_DIRECTION_CHECK_0X1_BRANCH;
+          
+          
+        game_fsm.GAME_DIRECTION_CHECK_0X1_BRANCH:
+          debug_state = 6b100101;
+          regfile_read_address_b = hf;
+          if( regfile_data_in == 0 ){
+            game_fsm.d = game_fsm.GAME_DIRECTION_CHANGE_LEFT;
+          } else {
+            game_fsm.d = game_fsm.GAME_MAIN;
+          }
+          
+
+        game_fsm.GAME_DIRECTION_CHANGE_RIGHT:
+          debug_state = 6b100101;
+          alufn_sel=0;
+          alufn = 6b000000; //add 
+          asel = b10;
+          bsel = b000;
+          we = b1;
+          regfile_read_address_b= h7; //read direction
+          regfile_write_address= h7; //write direction
+          wdsel=b00;
+          
+          game_fsm.d = game_fsm.GAME_MAIN;
+          
+/*#################################################################*/                    
+        game_fsm.GAME_DIRECTION_CHANGE_LEFT:
+          debug_state = 6b100110;
+          alufn_sel=0;
+          alufn = 6b000001;//subtract
+          asel = b10;
+          bsel =b000;
+          we = b1;
+          regfile_read_address_a = h7; // direction reg
+          regfile_write_address = h7;
+          wdsel = b00;
+          
+          game_fsm.d = game_fsm.GAME_MAIN;
+ 
+  }
+}
